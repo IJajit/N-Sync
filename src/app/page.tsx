@@ -67,36 +67,38 @@ export default function SyncDashboard() {
 
       <div className="max-w-[1600px] w-full mx-auto relative z-10 space-y-6">
         
-        {/* Compact Header & Controls Bar */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-900 pb-5">
+        {/* Compact Header & Controls Bar (In-Line on Mobile & Desktop) */}
+        <header className="flex flex-row items-center justify-between gap-4 border-b border-neutral-900 pb-4">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-100 font-sans">
             Calendar Sync
           </h1>
 
-          {/* Minimal Controls Bar: Toggle & Sync Icon Button */}
-          <div className="flex items-center gap-3 bg-[#0e0e10] border border-neutral-800 px-3 py-2">
-            {/* 1. Toggle for Live Sync */}
-            <label className="flex items-center cursor-pointer select-none" title="Toggle Live Auto Sync">
-              <div className="relative inline-flex items-center">
-                <input
-                  type="checkbox"
-                  checked={autoSync}
-                  onChange={(e) => setAutoSync(e.target.checked)}
-                  className="sr-only peer"
-                />
-                {/* Switch Track */}
-                <div className="w-10 h-5 bg-neutral-800 border border-neutral-700 rounded-full peer peer-checked:bg-emerald-500 peer-checked:border-emerald-400 transition-colors"></div>
-                {/* Switch Knob */}
-                <div className="absolute left-[2px] top-[2px] w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-              </div>
+          {/* Minimal Controls Bar: Uniform Circular Buttons (No Outer Box) */}
+          <div className="flex items-center gap-3">
+            {/* 1. Circular Live AutoSync Toggle Button */}
+            <label 
+              className={`w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-all select-none ${
+                autoSync 
+                  ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' 
+                  : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-neutral-300'
+              }`}
+              title={autoSync ? 'Live AutoSync Active (Click to Pause)' : 'Live AutoSync Paused (Click to Enable)'}
+            >
+              <input
+                type="checkbox"
+                checked={autoSync}
+                onChange={(e) => setAutoSync(e.target.checked)}
+                className="sr-only"
+              />
+              <Zap className={`w-4 h-4 ${autoSync ? 'fill-emerald-400 text-emerald-400' : ''}`} />
             </label>
 
-            {/* 2. Minimal Sync Icon Button */}
+            {/* 2. Circular Sync Icon Button */}
             <button
               onClick={triggerSync}
               disabled={syncing}
               title={syncing ? 'Syncing...' : 'Sync now'}
-              className="inline-flex items-center justify-center p-2 bg-white hover:bg-neutral-200 disabled:opacity-50 text-black transition-all cursor-pointer active:scale-95"
+              className="w-9 h-9 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-50 text-black flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm"
             >
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             </button>
