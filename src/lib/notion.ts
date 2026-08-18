@@ -19,7 +19,7 @@ export interface NotionTaskItem {
 
 export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
   const notion = getNotionClient();
-  if (!NOTION_TOKEN) return [];
+  if (!NOTION_TOKEN || !NOTION_TASKS_DB_ID) return [];
 
   try {
     let allResults: any[] = [];
@@ -27,26 +27,18 @@ export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
     let nextCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const pagesResponse: any = await notion.search({
-        query: '',
-        filter: {
-          value: 'page',
-          property: 'object',
-        } as any,
+      const response: any = await notion.databases.query({
+        database_id: NOTION_TASKS_DB_ID,
         page_size: 100,
         start_cursor: nextCursor,
-        sort: {
-          direction: 'descending',
-          timestamp: 'last_edited_time',
-        },
       });
 
-      if (pagesResponse.results) {
-        allResults = allResults.concat(pagesResponse.results);
+      if (response.results) {
+        allResults = allResults.concat(response.results);
       }
 
-      hasMore = pagesResponse.has_more;
-      nextCursor = pagesResponse.next_cursor || undefined;
+      hasMore = response.has_more;
+      nextCursor = response.next_cursor || undefined;
     }
 
     const parsedTasks = allResults
