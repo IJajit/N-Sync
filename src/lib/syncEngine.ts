@@ -102,13 +102,8 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
     for (const nTask of uncheckedNotionTasks) {
       const normalizedTitle = nTask.title.trim().toLowerCase();
-      if (deletedNotionIds.has(nTask.id) || deletedTitles.has(normalizedTitle)) {
-        continue; // Skip tasks deleted/completed in Step 2
-      }
-
-      // Skip past Notion tasks
-      if (nTask.dueDate && nTask.dueDate < todayStr) {
-        continue;
+      if (deletedNotionIds.has(nTask.id)) {
+        continue; // Skip tasks explicitly deleted in Step 2
       }
 
       let mapping = findMappingByNotionId(nTask.id);
@@ -236,6 +231,10 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           });
         }
       }
+    }
+
+    if (logs.length === 0) {
+      addLog(`Live sync active - verified ${uncheckedNotionTasks.length} active Notion tasks & ${gcalEvents.length} Notion calendar events.`, 'info');
     }
   } catch (error: any) {
     addLog(`Error during sync execution: ${error?.message || error}`, 'error');

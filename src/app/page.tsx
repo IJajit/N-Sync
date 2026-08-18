@@ -7,7 +7,7 @@ export default function SyncDashboard() {
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [mappings, setMappings] = useState<any[]>([]);
-  const [autoSync, setAutoSync] = useState(false);
+  const [autoSync, setAutoSync] = useState(true);
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
 
   const triggerSync = async () => {
@@ -42,7 +42,7 @@ export default function SyncDashboard() {
     if (autoSync) {
       interval = setInterval(() => {
         triggerSync();
-      }, 15000);
+      }, 10000);
     }
     return () => {
       if (interval) clearInterval(interval);
