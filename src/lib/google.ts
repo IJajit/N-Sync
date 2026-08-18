@@ -116,18 +116,31 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const targetDate = dueDate ? new Date(dueDate) : new Date();
-    const dateString = targetDate.toISOString().split('T')[0];
+    const requestBody: any = {
+      summary: title,
+      description: description || undefined,
+    };
 
-    // Create event directly on user's primary Google Calendar so it displays on main calendar
+    if (dueDate) {
+      if (dueDate.includes('T')) {
+        const startDate = new Date(dueDate);
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hr duration default
+        requestBody.start = { dateTime: startDate.toISOString() };
+        requestBody.end = { dateTime: endDate.toISOString() };
+      } else {
+        requestBody.start = { date: dueDate };
+        requestBody.end = { date: dueDate };
+      }
+    } else {
+      const todayStr = new Date().toISOString().split('T')[0];
+      requestBody.start = { date: todayStr };
+      requestBody.end = { date: todayStr };
+    }
+
+    // Create event directly on user's primary Google Calendar
     const res = await calendar.events.insert({
       calendarId: 'primary',
-      requestBody: {
-        summary: title,
-        description: description || undefined,
-        start: { date: dateString },
-        end: { date: dateString },
-      },
+      requestBody,
     });
 
     return res.data.id || null;
@@ -158,10 +171,15 @@ export async function updateGoogleCalendarEvent(
     }
 
     if (updates.dueDate !== undefined) {
-      const targetDate = updates.dueDate ? new Date(updates.dueDate) : new Date();
-      const dateString = targetDate.toISOString().split('T')[0];
-      requestBody.start = { date: dateString };
-      requestBody.end = { date: dateString };
+      if (updates.dueDate && updates.dueDate.includes('T')) {
+        const startDate = new Date(updates.dueDate);
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        requestBody.start = { dateTime: startDate.toISOString() };
+        requestBody.end = { dateTime: endDate.toISOString() };
+      } else if (updates.dueDate) {
+        requestBody.start = { date: updates.dueDate };
+        requestBody.end = { date: updates.dueDate };
+      }
     }
 
     try {

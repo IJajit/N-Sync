@@ -115,7 +115,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         continue;
       }
 
-      let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);
+      let mapping = findMappingByNotionId(nTask.id);
       const descriptionText = buildDescription(nTask.notes, nTask.url);
 
       if (mapping && mapping.isCompleted) {
@@ -146,7 +146,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       } else if (!mapping) {
         const existingGCalEvent = gcalEvents.find(
-          (evt) => evt.summary.trim().toLowerCase() === normalizedTitle
+          (evt) => evt.summary.trim().toLowerCase() === normalizedTitle && !evt.isCancelled
         );
 
         if (existingGCalEvent) {
@@ -160,26 +160,21 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'notion',
           });
+          addLog(`Linked Notion task "${nTask.title}" to existing Google Calendar event`, 'success');
         } else {
-          const gcalTitleExists = gcalEvents.some(
-            (evt) => evt.summary.trim().toLowerCase() === normalizedTitle
-          );
-
-          if (!gcalTitleExists) {
-            const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
-            if (gcalId) {
-              upsertMapping({
-                id: nTask.id,
-                notionId: nTask.id,
-                gcalId: gcalId,
-                title: nTask.title,
-                dueDate: nTask.dueDate,
-                isCompleted: false,
-                lastUpdated: new Date().toISOString(),
-                sourcePlatform: 'notion',
-              });
-              addLog(`Synced Notion task "${nTask.title}" to Google Calendar!`, 'success');
-            }
+          const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
+          if (gcalId) {
+            upsertMapping({
+              id: nTask.id,
+              notionId: nTask.id,
+              gcalId: gcalId,
+              title: nTask.title,
+              dueDate: nTask.dueDate,
+              isCompleted: false,
+              lastUpdated: new Date().toISOString(),
+              sourcePlatform: 'notion',
+            });
+            addLog(`Synced Notion task "${nTask.title}" to Google Calendar!`, 'success');
           }
         }
       }
