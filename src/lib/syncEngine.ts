@@ -183,8 +183,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     // =========================================================================
     // 4. GOOGLE CALENDAR -> NOTION TASKS (Skip Past Events & Deleted Items)
     // =========================================================================
-    const todayStr = new Date().toISOString().split('T')[0];
-
     for (const evt of gcalEvents) {
       const normalizedSummary = evt.summary.trim().toLowerCase();
 
