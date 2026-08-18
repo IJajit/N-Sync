@@ -168,7 +168,8 @@ function parseNotionPage(page: any): NotionTaskItem | null {
 export async function createNotionTask(
   title: string,
   dueDate?: string,
-  isCompleted: boolean = false
+  isCompleted: boolean = false,
+  notes?: string
 ): Promise<string | null> {
   const notion = getNotionClient();
   if (!NOTION_TOKEN) return null;
