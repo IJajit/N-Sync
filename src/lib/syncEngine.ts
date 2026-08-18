@@ -96,12 +96,15 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // =========================================================================
-    // 3. NOTION TASKS -> GOOGLE CALENDAR (Skip Past Tasks)
+    // 3. NOTION TASKS -> GOOGLE CALENDAR (Strict Single Creation Per Title)
     // =========================================================================
     const todayStr = new Date().toISOString().split('T')[0];
+    const createdGCalTitlesInRun = new Set<string>();
 
     for (const nTask of uncheckedNotionTasks) {
       const normalizedTitle = nTask.title.trim().toLowerCase();
+      const cleanTitleKey = normalizedTitle.replace(/\s+/g, ' ');
+
       if (deletedNotionIds.has(nTask.id)) {
         continue; // Skip tasks explicitly deleted in Step 2
       }
@@ -114,6 +117,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       }
 
       if (mapping && !mapping.isCompleted) {
+        createdGCalTitlesInRun.add(cleanTitleKey);
         const titleChanged = nTask.title !== mapping.title;
         const dateChanged = nTask.dueDate !== mapping.dueDate;
 
@@ -137,10 +141,11 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       } else if (!mapping) {
         const existingGCalEvent = gcalEvents.find(
-          (evt) => evt.summary.trim().toLowerCase().replace(/\s+/g, ' ') === normalizedTitle.replace(/\s+/g, ' ') && !evt.isCancelled
+          (evt) => evt.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey && !evt.isCancelled
         );
 
         if (existingGCalEvent) {
+          createdGCalTitlesInRun.add(cleanTitleKey);
           upsertMapping({
             id: nTask.id,
             notionId: nTask.id,
@@ -152,8 +157,14 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             sourcePlatform: 'notion',
           });
         } else {
+          // If an event for this title was already created in this sync run, skip creation to prevent duplicates!
+          if (createdGCalTitlesInRun.has(cleanTitleKey)) {
+            continue;
+          }
+
           const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
           if (gcalId) {
+            createdGCalTitlesInRun.add(cleanTitleKey);
             upsertMapping({
               id: nTask.id,
               notionId: nTask.id,
