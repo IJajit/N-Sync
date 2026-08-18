@@ -46,43 +46,38 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     };
 
     // =========================================================================
-    // 2. BI-DIRECTIONAL CHECKED / DELETED CONFLICT RESOLUTION
+    // 2. BI-DIRECTIONAL DELETION & CONFLICT RESOLUTION
     // =========================================================================
     for (const mapping of [...allMappings]) {
-      let isTaskNowCompletedOrDeleted = false;
+      if (mapping.isCompleted) continue;
 
-      // Check Notion: either marked completed or page removed
-      if (mapping.notionId) {
-        const currentNotionTask = allNotionTasks.find((t) => t.id === mapping.notionId);
-        if (!currentNotionTask || currentNotionTask.isCompleted) {
-          isTaskNowCompletedOrDeleted = true;
-        }
-      }
+      const notionTaskExists = mapping.notionId ? notionTaskIds.has(mapping.notionId) : false;
+      const currentNotionTask = mapping.notionId ? allNotionTasks.find((t) => t.id === mapping.notionId) : undefined;
+      const notionTaskCompleted = currentNotionTask ? currentNotionTask.isCompleted : false;
+      const gcalEventExists = mapping.gcalId ? gcalEventIds.has(mapping.gcalId) : false;
 
-      // Check Google Calendar: event removed from calendar
-      if (mapping.gcalId && !gcalEventIds.has(mapping.gcalId)) {
-        isTaskNowCompletedOrDeleted = true;
-      }
-
-      if (isTaskNowCompletedOrDeleted && !mapping.isCompleted) {
-        // Mark as checked/completed in Notion (do not archive page)
-        if (mapping.notionId && notionTaskIds.has(mapping.notionId)) {
-          const currentNotionTask = allNotionTasks.find((t) => t.id === mapping.notionId);
-          if (currentNotionTask && !currentNotionTask.isCompleted) {
-            await updateNotionTask(mapping.notionId, { isCompleted: true });
-            addLog(`Ticked task "${mapping.title}" as completed in Notion!`, 'success');
-          }
-        }
-
-        // Delete from Google Calendar
-        if (mapping.gcalId && gcalEventIds.has(mapping.gcalId)) {
+      // Case A: Task deleted or completed in Notion
+      if (mapping.notionId && (!notionTaskExists || notionTaskCompleted)) {
+        if (mapping.gcalId && gcalEventExists) {
           await deleteGoogleCalendarEvent(mapping.gcalId);
-          mapping.gcalId = undefined;
-          addLog(`Removed event "${mapping.title}" from Google Calendar!`, 'success');
+          addLog(`Deleted event "${mapping.title}" from Google Calendar (Notion task removed/completed)`, 'success');
         }
-
         mapping.isCompleted = true;
+        mapping.gcalId = undefined;
         upsertMapping(mapping);
+        continue;
+      }
+
+      // Case B: Event deleted in Google Calendar
+      if (mapping.gcalId && !gcalEventExists) {
+        if (mapping.notionId && notionTaskExists) {
+          await deleteNotionTaskPage(mapping.notionId);
+          addLog(`Archived task "${mapping.title}" in Notion (deleted from Google Calendar)`, 'success');
+        }
+        mapping.isCompleted = true;
+        mapping.notionId = undefined;
+        upsertMapping(mapping);
+        continue;
       }
     }
 
@@ -152,9 +147,16 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // =========================================================================
-    // 4. GOOGLE CALENDAR -> NOTION TASKS
+    // 4. GOOGLE CALENDAR -> NOTION TASKS (Skip Past Events)
     // =========================================================================
+    const todayStr = new Date().toISOString().split('T')[0];
+
     for (const evt of gcalEvents) {
+      // Ignore past Google Calendar events
+      if (evt.start && evt.start < todayStr) {
+        continue;
+      }
+
       let mapping = findMappingByGCalId(evt.id) || findMappingByTitle(evt.summary);
 
       if (mapping && !mapping.isCompleted) {

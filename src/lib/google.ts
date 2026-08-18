@@ -53,7 +53,8 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
   try {
     const calId = await getNotionCalendarId(calendar);
     const now = new Date();
-    const timeMin = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(); // Past 30 days
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const timeMin = todayStart.toISOString(); // From start of today
     const timeMax = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString(); // Next 180 days
 
     // Query both secondary 'Notion' calendar and primary calendar
