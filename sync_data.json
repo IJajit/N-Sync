@@ -20,54 +20,50 @@
     "sourcePlatform": "notion"
   },
   {
-    "id": "3bfe6d69-8017-8195-b1a5-e003feb64f08",
-    "notionId": "3bfe6d69-8017-8195-b1a5-e003feb64f08",
-    "gcalId": "nh3kju0hom8nlbccb95190etng",
+    "id": "3c0e6d69-8017-8016-a3cd-c9d350343622",
+    "notionId": "3c0e6d69-8017-8016-a3cd-c9d350343622",
     "title": "ASP Letter",
     "dueDate": "2026-08-18",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T16:21:40.869Z",
-    "sourcePlatform": "notion"
+    "lastUpdated": "2026-08-18T09:38:31.147Z",
+    "sourcePlatform": "notion",
+    "gcalId": "toh1lui43hrkbk542r4p7667ao"
   },
   {
     "id": "3bfe6d69-8017-8107-8653-e1edae0d9c80",
     "notionId": "3bfe6d69-8017-8107-8653-e1edae0d9c80",
-    "gcalId": "tkog89kbom56mdd0l1p1chhuj4",
     "title": "Italian lessons",
     "dueDate": "2026-08-18",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-17T17:19:09.183Z",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T09:37:54.938Z",
     "sourcePlatform": "notion"
   },
   {
-    "id": "3bae6d69-8017-80fb-bf46-dc6fc935919a",
-    "notionId": "3bae6d69-8017-80fb-bf46-dc6fc935919a",
-    "gcalId": "am57g6mgb7nraouc9i849mameo",
+    "id": "3c0e6d69-8017-80d7-a729-fb690163c870",
     "title": "Visa tracking",
     "dueDate": "2026-08-19",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-17T18:16:50.103Z",
-    "sourcePlatform": "notion"
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T09:38:44.649Z",
+    "sourcePlatform": "notion",
+    "gcalId": "am57g6mgb7nraouc9i849mameo"
   },
   {
     "id": "3bfe6d69-8017-8102-878f-ced02eca5943",
     "notionId": "3bfe6d69-8017-8102-878f-ced02eca5943",
-    "gcalId": "thfto4e2vb3renofmg3avuf5co",
     "title": "Joivy contract - check gender",
     "dueDate": "2026-08-18",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-17T17:19:11.068Z",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T09:37:55.645Z",
     "sourcePlatform": "notion"
   },
   {
-    "id": "3bfe6d69-8017-814d-83f7-c1ea215816a5",
-    "notionId": "3bfe6d69-8017-814d-83f7-c1ea215816a5",
-    "gcalId": "mgo4uakcu3c4lb2lvjibalrtcg",
+    "id": "3c0e6d69-8017-801b-a682-c05915e52dac",
     "title": "zettelkasten notes taking",
-    "dueDate": "2026-08-18",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-17T17:19:12.644Z",
-    "sourcePlatform": "gcal"
+    "dueDate": "2026-08-19",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T09:38:45.677Z",
+    "sourcePlatform": "notion",
+    "gcalId": "mgo4uakcu3c4lb2lvjibalrtcg"
   },
   {
     "id": "3bfe6d69-8017-81c8-8442-e8b8f0b6cbd2",
@@ -182,14 +178,14 @@
     "dueDate": "2026-08-17"
   },
   {
-    "id": "396e6d69-8017-80bb-bc26-edda89143f62",
-    "notionId": "396e6d69-8017-80bb-bc26-edda89143f62",
-    "gcalId": "vrrqmitasl68mbp3nnm4jf1kpc",
+    "id": "3c0e6d69-8017-80c8-beab-d773a715d970",
+    "notionId": "3c0e6d69-8017-80c8-beab-d773a715d970",
     "title": "Study Plan",
     "dueDate": "2026-08-26",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T16:45:32.506Z",
-    "sourcePlatform": "notion"
+    "lastUpdated": "2026-08-18T09:38:28.750Z",
+    "sourcePlatform": "notion",
+    "gcalId": "0b416bvslquo35eh6abqc8gkmg"
   },
   {
     "id": "3b1e6d69-8017-8054-8ed9-c31fb0bc391e",
@@ -212,13 +208,14 @@
     "sourcePlatform": "notion"
   },
   {
-    "id": "3ade6d69-8017-8004-a4d5-fd3efa07c80c",
-    "notionId": "3ade6d69-8017-8004-a4d5-fd3efa07c80c",
+    "id": "3bfe6d69-8017-807f-b993-fbb648bcb111",
+    "notionId": "3bfe6d69-8017-807f-b993-fbb648bcb111",
     "title": "IDP license",
-    "isCompleted": true,
-    "lastUpdated": "2026-08-17T18:59:28.325Z",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-18T09:38:32.120Z",
     "sourcePlatform": "notion",
-    "dueDate": "2026-08-24"
+    "dueDate": "2026-08-24",
+    "gcalId": "c4s66d336ti3eb9jccr3gb9k6hij2b9p6tgmabb374qjaphkcdj3ap9h70"
   },
   {
     "id": "399e6d69-8017-8009-bbba-f7d47fae5329",
@@ -609,5 +606,14 @@
     "isCompleted": true,
     "lastUpdated": "2026-08-18T08:13:16.239Z",
     "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-8017-9154-f5cd820e4549",
+    "gcalId": "0gvor7pt4sftrsqrp599pkrnbk",
+    "title": "joivy contract",
+    "dueDate": "2026-08-19",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T09:38:46.370Z",
+    "sourcePlatform": "notion"
   }
 ]
