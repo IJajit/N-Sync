@@ -24,10 +24,9 @@
     "notionId": "3c0e6d69-8017-80a3-9e6e-f6f93fe51e7b",
     "title": "ASP Letter",
     "dueDate": "2026-08-18",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:36.039Z",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T10:30:36.072Z",
     "sourcePlatform": "notion",
-    "gcalId": "nq9k2n78qd5kmmb38eahpkg68o",
     "description": "Notion Task: https://app.notion.com/p/ASP-Letter-3c0e6d69801780a39e6ef6f93fe51e7b"
   },
   {

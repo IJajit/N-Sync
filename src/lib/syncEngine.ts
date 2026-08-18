@@ -116,6 +116,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     // 3. NOTION TASKS -> GOOGLE CALENDAR (Strict Single Creation Per Title)
     // =========================================================================
     const createdGCalTitlesInRun = new Set<string>();
+    const modifiedInRun = new Set<string>();
 
     for (const nTask of uncheckedNotionTasks) {
       const normalizedTitle = nTask.title.trim().toLowerCase();
@@ -139,6 +140,10 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         const descriptionChanged = descriptionText !== mapping.description;
 
         if (titleChanged || dateChanged || descriptionChanged) {
+          modifiedInRun.add(mapping.id);
+          if (mapping.notionId) modifiedInRun.add(mapping.notionId);
+          if (mapping.gcalId) modifiedInRun.add(mapping.gcalId);
+
           if (mapping.gcalId) {
             await updateGoogleCalendarEvent(mapping.gcalId, {
               title: nTask.title,
@@ -151,6 +156,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           mapping.dueDate = nTask.dueDate;
           mapping.description = descriptionText;
           mapping.notionId = nTask.id;
+          mapping.lastUpdated = new Date().toISOString();
           upsertMapping(mapping);
           addLog(`Updated Google Calendar event details for Notion task "${nTask.title}"`, 'success');
         } else if (!mapping.notionId) {
@@ -171,6 +177,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             gcalId: existingGCalEvent.id,
             title: nTask.title,
             dueDate: nTask.dueDate,
+            description: descriptionText,
             isCompleted: false,
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'notion',
@@ -189,6 +196,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
               gcalId: gcalId,
               title: nTask.title,
               dueDate: nTask.dueDate,
+              description: descriptionText,
               isCompleted: false,
               lastUpdated: new Date().toISOString(),
               sourcePlatform: 'notion',
@@ -217,6 +225,10 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         continue;
       }
 
+      if (mapping && (modifiedInRun.has(mapping.id) || (mapping.notionId && modifiedInRun.has(mapping.notionId)) || (mapping.gcalId && modifiedInRun.has(mapping.gcalId)))) {
+        continue; // Skip items modified in Step 3 to prevent reversion!
+      }
+
       if (mapping && !mapping.isCompleted) {
         createdNotionTitlesInRun.add(normalizedSummary);
         const titleChanged = evt.summary !== mapping.title;
@@ -233,6 +245,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           mapping.title = evt.summary;
           mapping.dueDate = evt.start;
           mapping.gcalId = evt.id;
+          mapping.lastUpdated = new Date().toISOString();
           upsertMapping(mapping);
           addLog(`Updated Notion task for GCal event "${evt.summary}"`, 'success');
         } else if (!mapping.gcalId) {
