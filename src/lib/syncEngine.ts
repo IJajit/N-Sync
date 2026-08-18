@@ -160,28 +160,33 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'notion',
           });
-          addLog(`Linked Notion task "${nTask.title}" to existing Google Calendar event`, 'success');
         } else {
-          const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
+          const gcalTitleExists = gcalEvents.some(
+            (evt) => evt.summary.trim().toLowerCase() === normalizedTitle
+          );
 
-          upsertMapping({
-            id: nTask.id,
-            notionId: nTask.id,
-            gcalId: gcalId || undefined,
-            title: nTask.title,
-            dueDate: nTask.dueDate,
-            isCompleted: false,
-            lastUpdated: new Date().toISOString(),
-            sourcePlatform: 'notion',
-          });
-
-          addLog(`Synced Notion task "${nTask.title}" to Google Calendar!`, 'success');
+          if (!gcalTitleExists) {
+            const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
+            if (gcalId) {
+              upsertMapping({
+                id: nTask.id,
+                notionId: nTask.id,
+                gcalId: gcalId,
+                title: nTask.title,
+                dueDate: nTask.dueDate,
+                isCompleted: false,
+                lastUpdated: new Date().toISOString(),
+                sourcePlatform: 'notion',
+              });
+              addLog(`Synced Notion task "${nTask.title}" to Google Calendar!`, 'success');
+            }
+          }
         }
       }
     }
 
     // =========================================================================
-    // 4. GOOGLE CALENDAR -> NOTION TASKS (Skip Past Events & Deleted Items)
+    // 4. GOOGLE CALENDAR -> NOTION TASKS (Skip Past Events & Anti-Duplication)
     // =========================================================================
     for (const evt of gcalEvents) {
       const normalizedSummary = evt.summary.trim().toLowerCase();
@@ -224,7 +229,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       } else if (!mapping) {
         const existingNotionTask = allNotionTasks.find(
-          (t) => t.title.trim().toLowerCase() === normalizedSummary && !t.isCompleted
+          (t) => t.title.trim().toLowerCase() === normalizedSummary
         );
 
         if (existingNotionTask) {
@@ -234,26 +239,31 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             gcalId: evt.id,
             title: evt.summary,
             dueDate: evt.start,
-            isCompleted: false,
+            isCompleted: existingNotionTask.isCompleted,
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'gcal',
           });
-          addLog(`Linked GCal event "${evt.summary}" to existing Notion task`, 'success');
         } else {
-          const notionId = await createNotionTask(evt.summary, evt.start, false);
+          const titleExistsInNotion = allNotionTasks.some(
+            (t) => t.title.trim().toLowerCase() === normalizedSummary
+          );
 
-          if (notionId) {
-            upsertMapping({
-              id: notionId,
-              notionId: notionId,
-              gcalId: evt.id,
-              title: evt.summary,
-              dueDate: evt.start,
-              isCompleted: false,
-              lastUpdated: new Date().toISOString(),
-              sourcePlatform: 'gcal',
-            });
-            addLog(`Synced Calendar event "${evt.summary}" to Notion!`, 'success');
+          if (!titleExistsInNotion) {
+            const notionId = await createNotionTask(evt.summary, evt.start, false);
+
+            if (notionId) {
+              upsertMapping({
+                id: notionId,
+                notionId: notionId,
+                gcalId: evt.id,
+                title: evt.summary,
+                dueDate: evt.start,
+                isCompleted: false,
+                lastUpdated: new Date().toISOString(),
+                sourcePlatform: 'gcal',
+              });
+              addLog(`Synced Calendar event "${evt.summary}" to Notion!`, 'success');
+            }
           }
         }
       }
