@@ -243,28 +243,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'gcal',
           });
-        } else {
-          const titleExistsInNotion = allNotionTasks.some(
-            (t) => t.title.trim().toLowerCase() === normalizedSummary
-          );
-
-          if (!titleExistsInNotion) {
-            const notionId = await createNotionTask(evt.summary, evt.start, false);
-
-            if (notionId) {
-              upsertMapping({
-                id: notionId,
-                notionId: notionId,
-                gcalId: evt.id,
-                title: evt.summary,
-                dueDate: evt.start,
-                isCompleted: false,
-                lastUpdated: new Date().toISOString(),
-                sourcePlatform: 'gcal',
-              });
-              addLog(`Synced Calendar event "${evt.summary}" to Notion!`, 'success');
-            }
-          }
         }
       }
     }
