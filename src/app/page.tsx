@@ -16,7 +16,9 @@ export default function SyncDashboard() {
       const res = await fetch('/api/sync', { method: 'POST' });
       const data = await res.json();
       if (data.logs) {
-        setLogs((prev) => [...data.logs, ...prev]);
+        setLogs(data.logs);
+      } else {
+        setLogs([]);
       }
       if (data.mappings) {
         setMappings(data.mappings);

@@ -106,7 +106,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         continue; // Skip tasks explicitly deleted in Step 2
       }
 
-      let mapping = findMappingByNotionId(nTask.id);
+      let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);
       const descriptionText = buildDescription(nTask.notes, nTask.url);
 
       if (mapping && mapping.isCompleted) {
@@ -137,7 +137,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       } else if (!mapping) {
         const existingGCalEvent = gcalEvents.find(
-          (evt) => evt.summary.trim().toLowerCase() === normalizedTitle && !evt.isCancelled
+          (evt) => evt.summary.trim().toLowerCase().replace(/\s+/g, ' ') === normalizedTitle.replace(/\s+/g, ' ') && !evt.isCancelled
         );
 
         if (existingGCalEvent) {
@@ -151,7 +151,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'notion',
           });
-          addLog(`Linked Notion task "${nTask.title}" to existing Google Calendar event`, 'success');
         } else {
           const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
           if (gcalId) {
@@ -175,7 +174,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     // 4. GOOGLE CALENDAR -> NOTION TASKS (Skip Past Events & Anti-Duplication)
     // =========================================================================
     for (const evt of gcalEvents) {
-      const normalizedSummary = evt.summary.trim().toLowerCase();
+      const normalizedSummary = evt.summary.trim().toLowerCase().replace(/\s+/g, ' ');
 
       // Skip deleted events or past events
       if (deletedGCalIds.has(evt.id) || deletedTitles.has(normalizedSummary)) {
@@ -215,7 +214,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       } else if (!mapping) {
         const existingNotionTask = allNotionTasks.find(
-          (t) => t.title.trim().toLowerCase() === normalizedSummary
+          (t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === normalizedSummary
         );
 
         if (existingNotionTask) {
@@ -231,10 +230,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           });
         }
       }
-    }
-
-    if (logs.length === 0) {
-      addLog(`Live sync active - verified ${uncheckedNotionTasks.length} active Notion tasks & ${gcalEvents.length} Notion calendar events.`, 'info');
     }
   } catch (error: any) {
     addLog(`Error during sync execution: ${error?.message || error}`, 'error');
