@@ -112,9 +112,9 @@ function parseNotionPage(page: any): NotionTaskItem | null {
     }
   }
 
-  // Priority 2: Fall back to page creation date
-  if (!dueDate && page.created_time) {
-    dueDate = page.created_time.split('T')[0];
+  // Priority 2: Default to today's date so active tasks are synced to calendar
+  if (!dueDate) {
+    dueDate = new Date().toISOString().split('T')[0];
   }
 
   // Extract Notes / Text properties

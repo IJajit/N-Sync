@@ -55,11 +55,11 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
     const calId = await getNotionCalendarId(calendar);
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const timeMin = todayStart.toISOString(); // Strictly from start of today (no past events)
+    const timeMin = todayStart.toISOString(); // Strictly from start of today
     const timeMax = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString(); // Next 180 days
 
-    // Query only target Notion calendar (or primary if calId falls back)
-    const calendarIdsToQuery = [calId];
+    // Query both primary and Notion secondary calendars so all user events are captured
+    const calendarIdsToQuery = Array.from(new Set(['primary', calId]));
     const allEventsMap = new Map<string, GCalEventItem>();
 
     for (const targetCalId of calendarIdsToQuery) {
@@ -116,12 +116,12 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const calId = await getNotionCalendarId(calendar);
     const targetDate = dueDate ? new Date(dueDate) : new Date();
     const dateString = targetDate.toISOString().split('T')[0];
 
+    // Create event directly on user's primary Google Calendar so it displays on main calendar
     const res = await calendar.events.insert({
-      calendarId: calId,
+      calendarId: 'primary',
       requestBody: {
         summary: title,
         description: description || undefined,
@@ -132,7 +132,7 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
 
     return res.data.id || null;
   } catch (error) {
-    console.error('Error creating Google Calendar event:', error);
+    console.error('Error creating Google Calendar event on primary calendar:', error);
     return null;
   }
 }
@@ -147,7 +147,6 @@ export async function updateGoogleCalendarEvent(
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const calId = await getNotionCalendarId(calendar);
     const requestBody: any = {};
 
     if (updates.title !== undefined) {
@@ -165,13 +164,22 @@ export async function updateGoogleCalendarEvent(
       requestBody.end = { date: dateString };
     }
 
-    await calendar.events.patch({
-      calendarId: calId,
-      eventId,
-      requestBody,
-    });
-
-    return true;
+    try {
+      await calendar.events.patch({
+        calendarId: 'primary',
+        eventId,
+        requestBody,
+      });
+      return true;
+    } catch {
+      const calId = await getNotionCalendarId(calendar);
+      await calendar.events.patch({
+        calendarId: calId,
+        eventId,
+        requestBody,
+      });
+      return true;
+    }
   } catch (error) {
     console.error(`Error updating Google Calendar event ${eventId}:`, error);
     return false;
@@ -185,12 +193,20 @@ export async function deleteGoogleCalendarEvent(eventId: string): Promise<boolea
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const calId = await getNotionCalendarId(calendar);
-    await calendar.events.delete({
-      calendarId: calId,
-      eventId,
-    });
-    return true;
+    try {
+      await calendar.events.delete({
+        calendarId: 'primary',
+        eventId,
+      });
+      return true;
+    } catch {
+      const calId = await getNotionCalendarId(calendar);
+      await calendar.events.delete({
+        calendarId: calId,
+        eventId,
+      });
+      return true;
+    }
   } catch (error) {
     console.error(`Error deleting Google Calendar event ${eventId}:`, error);
     return false;
