@@ -13,8 +13,6 @@ export function getOAuth2Client() {
   return oAuth2Client;
 }
 
-// ==================== GOOGLE CALENDAR ====================
-
 export interface GCalEventItem {
   id: string;
   summary: string;
@@ -24,27 +22,6 @@ export interface GCalEventItem {
   isCancelled?: boolean;
 }
 
-async function getNotionCalendarId(calendar: any): Promise<string> {
-  try {
-    const listRes = await calendar.calendarList.list();
-    const existing = (listRes.data.items || []).find(
-      (c: any) => c.summary && c.summary.trim().toLowerCase() === 'notion'
-    );
-
-    if (existing && existing.id) {
-      return existing.id;
-    }
-
-    const created = await calendar.calendars.insert({
-      requestBody: { summary: 'Notion' },
-    });
-    return created.data.id || 'primary';
-  } catch (error) {
-    console.error('Error finding/creating Notion calendar, falling back to primary:', error);
-    return 'primary';
-  }
-}
-
 export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
   const auth = getOAuth2Client();
   if (!REFRESH_TOKEN) return [];
@@ -52,53 +29,42 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const calId = await getNotionCalendarId(calendar);
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const timeMin = todayStart.toISOString(); // Strictly from start of today
-    const timeMax = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString(); // Next 180 days
+    const timeMin = todayStart.toISOString();
+    const timeMax = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString();
 
-    const allEventsMap = new Map<string, GCalEventItem>();
+    const response = await calendar.events.list({
+      calendarId: 'primary',
+      singleEvents: true,
+      showDeleted: true,
+      orderBy: 'startTime',
+      timeMin,
+      timeMax,
+    });
 
-    try {
-      const response = await calendar.events.list({
-        calendarId: calId,
-        singleEvents: true,
-        showDeleted: true,
-        orderBy: 'startTime',
-        timeMin,
-        timeMax,
-      });
-
-      for (const evt of response.data.items || []) {
-        if (evt.id && !allEventsMap.has(evt.id)) {
-          const isCancelled = evt.status === 'cancelled';
-
-          // Standardize start date format
-          let startDate: string | undefined = undefined;
-          if (evt.start?.date) {
-            startDate = evt.start.date;
-          } else if (evt.start?.dateTime) {
-            startDate = evt.start.dateTime.split('T')[0];
-          }
-
-          allEventsMap.set(evt.id, {
-            id: evt.id,
-            summary: evt.summary || 'Untitled Event',
-            description: evt.description || '',
-            start: startDate,
-            updated: evt.updated || undefined,
-            isCancelled,
-          });
-        }
+    const items: GCalEventItem[] = [];
+    for (const evt of response.data.items || []) {
+      if (!evt.id) continue;
+      const isCancelled = evt.status === 'cancelled';
+      let startDate: string | undefined = undefined;
+      if (evt.start?.date) {
+        startDate = evt.start.date;
+      } else if (evt.start?.dateTime) {
+        startDate = evt.start.dateTime;
       }
-    } catch (err) {
-      console.warn(`Could not list events for Notion calendar ${calId}:`, err);
+
+      items.push({
+        id: evt.id,
+        summary: evt.summary || 'Untitled Event',
+        description: evt.description || '',
+        start: startDate,
+        updated: evt.updated || undefined,
+        isCancelled,
+      });
     }
 
-    const eventsList = Array.from(allEventsMap.values());
-    console.log(`[Google Calendar] Fetched ${eventsList.length} events from Notion secondary calendar.`);
-    return eventsList;
+    return items;
   } catch (error) {
     console.error('Error fetching Google Calendar events:', error);
     return [];
@@ -112,7 +78,6 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const calId = await getNotionCalendarId(calendar);
     const requestBody: any = {
       summary: title,
       description: description || undefined,
@@ -121,7 +86,7 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
     if (dueDate) {
       if (dueDate.includes('T')) {
         const startDate = new Date(dueDate);
-        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hr duration default
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
         requestBody.start = { dateTime: startDate.toISOString() };
         requestBody.end = { dateTime: endDate.toISOString() };
       } else {
@@ -134,15 +99,14 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
       requestBody.end = { date: todayStr };
     }
 
-    // Create event directly on user's dedicated Notion calendar
     const res = await calendar.events.insert({
-      calendarId: calId,
+      calendarId: 'primary',
       requestBody,
     });
 
     return res.data.id || null;
   } catch (error) {
-    console.error('Error creating Google Calendar event on Notion calendar:', error);
+    console.error('Error creating Google Calendar event:', error);
     return null;
   }
 }
@@ -157,7 +121,6 @@ export async function updateGoogleCalendarEvent(
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const calId = await getNotionCalendarId(calendar);
     const requestBody: any = {};
 
     if (updates.title !== undefined) {
@@ -181,7 +144,7 @@ export async function updateGoogleCalendarEvent(
     }
 
     await calendar.events.patch({
-      calendarId: calId,
+      calendarId: 'primary',
       eventId,
       requestBody,
     });
@@ -199,9 +162,8 @@ export async function deleteGoogleCalendarEvent(eventId: string): Promise<boolea
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const calId = await getNotionCalendarId(calendar);
     await calendar.events.delete({
-      calendarId: calId,
+      calendarId: 'primary',
       eventId,
     });
     return true;

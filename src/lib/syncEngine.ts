@@ -1,17 +1,6 @@
-import { fetchNotionTasks, createNotionTask, updateNotionTask, deleteNotionTaskPage, verifyNotionPageArchived } from './notion';
-import {
-  fetchGoogleCalendarEvents,
-  createGoogleCalendarEvent,
-  updateGoogleCalendarEvent,
-  deleteGoogleCalendarEvent,
-} from './google';
-import {
-  getMappings,
-  upsertMapping,
-  findMappingByNotionId,
-  findMappingByGCalId,
-  findMappingByTitle,
-} from './syncStore';
+import { fetchNotionTasks, updateNotionTask, createNotionTask, deleteNotionTaskPage, verifyNotionPageArchived } from './notion';
+import { fetchGoogleCalendarEvents, createGoogleCalendarEvent, updateGoogleCalendarEvent, deleteGoogleCalendarEvent, GCalEventItem } from './google';
+import { getMappings, upsertMapping, findMappingByNotionId, findMappingByGCalId, findMappingByTitle } from './syncStore';
 
 export interface SyncLog {
   timestamp: string;
@@ -22,12 +11,16 @@ export interface SyncLog {
 export async function runTwoWaySync(): Promise<SyncLog[]> {
   const logs: SyncLog[] = [];
 
-  const addLog = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
-    logs.push({ timestamp: new Date().toISOString(), message, type });
+  const addLog = (message: string, type: SyncLog['type'] = 'info') => {
+    logs.push({
+      timestamp: new Date().toISOString(),
+      message,
+      type,
+    });
   };
 
   try {
-    // 1. Fetch data from Notion Tasks and Google Calendar ("Notion" calendar)
+    // 1. Fetch data from Notion Tasks and Google Calendar
     const [allNotionTasks, gcalEvents] = await Promise.all([
       fetchNotionTasks(),
       fetchGoogleCalendarEvents(),
@@ -73,7 +66,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     // =========================================================================
     const deletedNotionIds = new Set<string>();
     const deletedGCalIds = new Set<string>();
-    const deletedTitles = new Set<string>();
 
     for (const mapping of [...allMappings]) {
       if (mapping.isCompleted) continue;
@@ -84,18 +76,17 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       const gcalEvt = mapping.gcalId ? gcalEvents.find((e) => e.id === mapping.gcalId) : undefined;
       const isExplicitlyCancelledInGCal = gcalEvt ? Boolean(gcalEvt.isCancelled) : false;
 
-      // Case A: Task deleted or completed in Notion
+      // Case A: Task deleted or completed in Notion -> Delete from Google Calendar
       if (mapping.notionId && (!notionTaskExists || notionTaskCompleted)) {
         const isNotionPageArchived = !notionTaskExists ? await verifyNotionPageArchived(mapping.notionId) : false;
 
         if (isNotionPageArchived || notionTaskCompleted) {
           if (mapping.gcalId && gcalEventIds.has(mapping.gcalId)) {
             await deleteGoogleCalendarEvent(mapping.gcalId);
-            addLog(`Deleted event "${mapping.title}" from Google Calendar (Notion task removed/completed)`, 'success');
+            addLog(`Deleted event "${mapping.title}" from Google Calendar (Notion task removed)`, 'success');
           }
           if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
           if (mapping.gcalId) deletedGCalIds.add(mapping.gcalId);
-          deletedTitles.add(mapping.title.trim().toLowerCase());
 
           mapping.isCompleted = true;
           mapping.gcalId = undefined;
@@ -104,11 +95,14 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       }
 
-      // Case B: Event explicitly cancelled/deleted in Google Calendar
+      // Case B: Event deleted/cancelled in Google Calendar -> Archive/delete in Notion
       if (mapping.gcalId && isExplicitlyCancelledInGCal) {
+        if (mapping.notionId && notionTaskExists) {
+          await deleteNotionTaskPage(mapping.notionId);
+          addLog(`Archived task "${mapping.title}" in Notion (deleted from Google Calendar)`, 'success');
+        }
         if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
         if (mapping.gcalId) deletedGCalIds.add(mapping.gcalId);
-        deletedTitles.add(mapping.title.trim().toLowerCase());
 
         mapping.isCompleted = true;
         mapping.notionId = undefined;
@@ -120,7 +114,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     // =========================================================================
     // 3. NOTION TASKS -> GOOGLE CALENDAR (Strict Single Creation Per Title)
     // =========================================================================
-    const todayStr = new Date().toISOString().split('T')[0];
     const createdGCalTitlesInRun = new Set<string>();
 
     for (const nTask of uncheckedNotionTasks) {
@@ -128,14 +121,14 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       const cleanTitleKey = normalizedTitle.replace(/\s+/g, ' ');
 
       if (deletedNotionIds.has(nTask.id)) {
-        continue; // Skip tasks explicitly deleted in Step 2
+        continue;
       }
 
       let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);
       const descriptionText = buildDescription(nTask.notes, nTask.url);
 
       if (mapping && mapping.isCompleted) {
-        continue; // Do not resurrect completed/deleted mapping
+        continue;
       }
 
       if (mapping && !mapping.isCompleted) {
@@ -179,7 +172,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             sourcePlatform: 'notion',
           });
         } else {
-          // If an event for this title was already created in this sync run, skip creation to prevent duplicates!
           if (createdGCalTitlesInRun.has(cleanTitleKey)) {
             continue;
           }
@@ -204,27 +196,25 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // =========================================================================
-    // 4. GOOGLE CALENDAR -> NOTION TASKS (Skip Past Events & Anti-Duplication)
+    // 4. GOOGLE CALENDAR -> NOTION TASKS (Creation & Modifications)
     // =========================================================================
-    for (const evt of gcalEvents) {
+    const createdNotionTitlesInRun = new Set<string>();
+
+    for (const evt of activeGCalEvents) {
       const normalizedSummary = evt.summary.trim().toLowerCase().replace(/\s+/g, ' ');
 
-      // Skip deleted events or past events
-      if (deletedGCalIds.has(evt.id) || deletedTitles.has(normalizedSummary)) {
-        continue;
-      }
-
-      if (evt.start && evt.start < todayStr) {
+      if (deletedGCalIds.has(evt.id)) {
         continue;
       }
 
       let mapping = findMappingByGCalId(evt.id) || findMappingByTitle(evt.summary);
 
       if (mapping && mapping.isCompleted) {
-        continue; // Do not resurrect completed/deleted mapping
+        continue;
       }
 
       if (mapping && !mapping.isCompleted) {
+        createdNotionTitlesInRun.add(normalizedSummary);
         const titleChanged = evt.summary !== mapping.title;
         const dateChanged = evt.start !== mapping.dueDate;
 
@@ -251,6 +241,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         );
 
         if (existingNotionTask) {
+          createdNotionTitlesInRun.add(normalizedSummary);
           upsertMapping({
             id: existingNotionTask.id,
             notionId: existingNotionTask.id,
@@ -261,6 +252,26 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'gcal',
           });
+        } else {
+          if (createdNotionTitlesInRun.has(normalizedSummary)) {
+            continue;
+          }
+
+          const notionId = await createNotionTask(evt.summary, evt.start, evt.description);
+          if (notionId) {
+            createdNotionTitlesInRun.add(normalizedSummary);
+            upsertMapping({
+              id: notionId,
+              notionId,
+              gcalId: evt.id,
+              title: evt.summary,
+              dueDate: evt.start,
+              isCompleted: false,
+              lastUpdated: new Date().toISOString(),
+              sourcePlatform: 'gcal',
+            });
+            addLog(`Synced Google Calendar event "${evt.summary}" to Notion!`, 'success');
+          }
         }
       }
     }
