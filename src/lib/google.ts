@@ -113,6 +113,18 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
   }
 }
 
+function getExclusiveEndDate(dateStr: string): string {
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const yyyy = parseInt(parts[0], 10);
+    const mm = parseInt(parts[1], 10) - 1;
+    const dd = parseInt(parts[2], 10);
+    const nextDay = new Date(Date.UTC(yyyy, mm, dd + 1));
+    return nextDay.toISOString().split('T')[0];
+  }
+  return dateStr;
+}
+
 export async function createGoogleCalendarEvent(title: string, dueDate?: string, description?: string): Promise<string | null> {
   const auth = getOAuth2Client();
   if (!REFRESH_TOKEN) return null;
@@ -134,12 +146,12 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
         requestBody.end = { dateTime: endDate.toISOString() };
       } else {
         requestBody.start = { date: dueDate };
-        requestBody.end = { date: dueDate };
+        requestBody.end = { date: getExclusiveEndDate(dueDate) };
       }
     } else {
       const todayStr = new Date().toISOString().split('T')[0];
       requestBody.start = { date: todayStr };
-      requestBody.end = { date: todayStr };
+      requestBody.end = { date: getExclusiveEndDate(todayStr) };
     }
 
     const res = await calendar.events.insert({
@@ -183,7 +195,7 @@ export async function updateGoogleCalendarEvent(
         requestBody.end = { dateTime: endDate.toISOString() };
       } else if (updates.dueDate) {
         requestBody.start = { date: updates.dueDate };
-        requestBody.end = { date: updates.dueDate };
+        requestBody.end = { date: getExclusiveEndDate(updates.dueDate) };
       }
     }
 
