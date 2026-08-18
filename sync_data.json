@@ -618,12 +618,11 @@
   },
   {
     "id": "3c0e6d69-8017-80f4-ba57-f2da24490453",
-    "notionId": "3c0e6d69-8017-80f4-ba57-f2da24490453",
     "gcalId": "qn7kk42g5ifc0p503ph0npnoqo",
     "title": "Joivy",
     "dueDate": "2026-08-18",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T09:58:46.807Z",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T10:06:34.816Z",
     "sourcePlatform": "notion"
   },
   {
