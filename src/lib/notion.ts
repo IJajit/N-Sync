@@ -202,6 +202,22 @@ export async function createNotionTask(
   }
 }
 
+export async function verifyNotionPageArchived(pageId: string): Promise<boolean> {
+  const notion = getNotionClient();
+  if (!NOTION_TOKEN) return false;
+
+  try {
+    const page: any = await notion.pages.retrieve({ page_id: pageId });
+    return Boolean(page.archived);
+  } catch (error: any) {
+    // 404 error means page was permanently deleted / trashed
+    if (error?.status === 404 || error?.code === 'object_not_found') {
+      return true;
+    }
+    return false;
+  }
+}
+
 export async function deleteNotionTaskPage(pageId: string): Promise<boolean> {
   const notion = getNotionClient();
   if (!NOTION_TOKEN) return false;

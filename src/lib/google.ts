@@ -21,6 +21,7 @@ export interface GCalEventItem {
   description?: string;
   start?: string;
   updated?: string;
+  isCancelled?: boolean;
 }
 
 async function getNotionCalendarId(calendar: any): Promise<string> {
@@ -53,9 +54,8 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
   try {
     const calId = await getNotionCalendarId(calendar);
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const timeMin = todayStart.toISOString(); // From start of today
-    const timeMax = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString(); // Next 180 days
+    const timeMin = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString(); // Past 90 days
+    const timeMax = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(); // Next 365 days
 
     // Query both secondary 'Notion' calendar and primary calendar
     const calendarIdsToQuery = new Set([calId, 'primary']);
@@ -66,6 +66,7 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
         const response = await calendar.events.list({
           calendarId: targetCalId,
           singleEvents: true,
+          showDeleted: true,
           orderBy: 'startTime',
           timeMin,
           timeMax,
@@ -73,6 +74,8 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
 
         for (const evt of response.data.items || []) {
           if (evt.id && !allEventsMap.has(evt.id)) {
+            const isCancelled = evt.status === 'cancelled';
+
             // Standardize start date format
             let startDate: string | undefined = undefined;
             if (evt.start?.date) {
@@ -87,6 +90,7 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
               description: evt.description || '',
               start: startDate,
               updated: evt.updated || undefined,
+              isCancelled,
             });
           }
         }
