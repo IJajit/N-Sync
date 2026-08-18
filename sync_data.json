@@ -1,0 +1,613 @@
+[
+  {
+    "id": "3bfe6d69-8017-810d-a3a9-d19d7c2f4f44",
+    "notionId": "3bfe6d69-8017-810d-a3a9-d19d7c2f4f44",
+    "gcalId": "4pgrp32pokmvpa2ree1unf38qs",
+    "title": "fdgee",
+    "dueDate": "2026-08-19",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:33:12.676Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-8006-b44b-e6c191022d4d",
+    "notionId": "3bfe6d69-8017-8006-b44b-e6c191022d4d",
+    "gcalId": "a12304h3aojr699f5lrppcp1q0",
+    "title": "1122",
+    "dueDate": "2026-08-18",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:33:13.268Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-8195-b1a5-e003feb64f08",
+    "notionId": "3bfe6d69-8017-8195-b1a5-e003feb64f08",
+    "gcalId": "nh3kju0hom8nlbccb95190etng",
+    "title": "ASP Letter",
+    "dueDate": "2026-08-18",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T16:21:40.869Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-8107-8653-e1edae0d9c80",
+    "notionId": "3bfe6d69-8017-8107-8653-e1edae0d9c80",
+    "gcalId": "tkog89kbom56mdd0l1p1chhuj4",
+    "title": "Italian lessons",
+    "dueDate": "2026-08-18",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T17:19:09.183Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bae6d69-8017-80fb-bf46-dc6fc935919a",
+    "notionId": "3bae6d69-8017-80fb-bf46-dc6fc935919a",
+    "gcalId": "am57g6mgb7nraouc9i849mameo",
+    "title": "Visa tracking",
+    "dueDate": "2026-08-19",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T18:16:50.103Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-8102-878f-ced02eca5943",
+    "notionId": "3bfe6d69-8017-8102-878f-ced02eca5943",
+    "gcalId": "thfto4e2vb3renofmg3avuf5co",
+    "title": "Joivy contract - check gender",
+    "dueDate": "2026-08-18",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T17:19:11.068Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-814d-83f7-c1ea215816a5",
+    "notionId": "3bfe6d69-8017-814d-83f7-c1ea215816a5",
+    "gcalId": "mgo4uakcu3c4lb2lvjibalrtcg",
+    "title": "zettelkasten notes taking",
+    "dueDate": "2026-08-18",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T17:19:12.644Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-81c8-8442-e8b8f0b6cbd2",
+    "notionId": "3bfe6d69-8017-81c8-8442-e8b8f0b6cbd2",
+    "title": "Usb extension",
+    "dueDate": "2026-08-23",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:59:26.979Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-8103-bf0c-de9621f27469",
+    "notionId": "3bfe6d69-8017-8103-bf0c-de9621f27469",
+    "title": "gtask",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:30:52.313Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-81ef-8d78-cb26a735b2fe",
+    "notionId": "3bfe6d69-8017-81ef-8d78-cb26a735b2fe",
+    "title": "gtask",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:30:52.314Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-8125-b54d-f285b572d604",
+    "notionId": "3bfe6d69-8017-8125-b54d-f285b572d604",
+    "title": "hey g",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:30:52.315Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-81c4-b5cc-f18b81ac8648",
+    "notionId": "3bfe6d69-8017-81c4-b5cc-f18b81ac8648",
+    "title": "hey g",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:30:52.315Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-8106-8f3e-dfbc44ded012",
+    "notionId": "3bfe6d69-8017-8106-8f3e-dfbc44ded012",
+    "gtaskId": "VUFXTTYyVjNMMkdHN1AtSA",
+    "title": "yooo",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:32:47.380Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-81d1-becb-f135018f7a27",
+    "notionId": "3bfe6d69-8017-81d1-becb-f135018f7a27",
+    "title": "hey g",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:30:53.569Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-8105-ae35-ed3bdcab591b",
+    "notionId": "3bfe6d69-8017-8105-ae35-ed3bdcab591b",
+    "gcalId": "r88s6i5febusatcsdhsr5go38g",
+    "title": "yooo",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:32:57.112Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-81d4-91cb-d0a0acc66c62",
+    "notionId": "3bfe6d69-8017-81d4-91cb-d0a0acc66c62",
+    "title": "Welcome week webminar",
+    "dueDate": "2026-09-02",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:15:07.167Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3b9e6d69-8017-8094-83d7-e9f9a1456116",
+    "notionId": "3b9e6d69-8017-8094-83d7-e9f9a1456116",
+    "gcalId": "vuv41u77lsnu5k9i9uk7qumiv0",
+    "title": "Italian translation of documents ",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:34.558Z",
+    "sourcePlatform": "notion",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "3b8e6d69-8017-805c-836f-cfb878cd6cad",
+    "notionId": "3b8e6d69-8017-805c-836f-cfb878cd6cad",
+    "gcalId": "sth6phamc2ou9eg5t0fgm4nncg",
+    "title": "Install apps for Italy ",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:50.660Z",
+    "sourcePlatform": "notion",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "3b8e6d69-8017-80ce-ad4f-dfecd34b83c5",
+    "notionId": "3b8e6d69-8017-80ce-ad4f-dfecd34b83c5",
+    "gcalId": "sqce1kfdo5ogdacrf2v0h7lhu0",
+    "title": "Yellow kit documents ",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:51.333Z",
+    "sourcePlatform": "notion",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "396e6d69-8017-80bb-bc26-edda89143f62",
+    "notionId": "396e6d69-8017-80bb-bc26-edda89143f62",
+    "gcalId": "vrrqmitasl68mbp3nnm4jf1kpc",
+    "title": "Study Plan",
+    "dueDate": "2026-08-26",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T16:45:32.506Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3b1e6d69-8017-8054-8ed9-c31fb0bc391e",
+    "notionId": "3b1e6d69-8017-8054-8ed9-c31fb0bc391e",
+    "gcalId": "8k1gmotgs5gsafkt9padtlkcsc",
+    "title": "Italian language course",
+    "dueDate": "2026-08-26",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T16:45:36.182Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3b1e6d69-8017-8007-80f9-cc3ceccf433f",
+    "notionId": "3b1e6d69-8017-8007-80f9-cc3ceccf433f",
+    "gcalId": "hn4ennjoe3jsnv2eju0qvspsu8",
+    "title": "Safety Training Course",
+    "dueDate": "2026-08-27",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T16:45:37.466Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3ade6d69-8017-8004-a4d5-fd3efa07c80c",
+    "notionId": "3ade6d69-8017-8004-a4d5-fd3efa07c80c",
+    "title": "IDP license",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:59:28.325Z",
+    "sourcePlatform": "notion",
+    "dueDate": "2026-08-24"
+  },
+  {
+    "id": "399e6d69-8017-8009-bbba-f7d47fae5329",
+    "notionId": "399e6d69-8017-8009-bbba-f7d47fae5329",
+    "gcalId": "n6g14ahev99k55h28n7ona2bmk",
+    "title": "Fast track immigration",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:20.488Z",
+    "sourcePlatform": "gcal",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "368e6d69-8017-8027-bcc4-fca4557e8a9f",
+    "notionId": "368e6d69-8017-8027-bcc4-fca4557e8a9f",
+    "gcalId": "usless449tbga7pb4qbd9ouo5s",
+    "title": "Untitled ",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:51.798Z",
+    "sourcePlatform": "gcal",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "368e6d69-8017-80ca-8036-f30868eeef8e",
+    "notionId": "368e6d69-8017-80ca-8036-f30868eeef8e",
+    "gcalId": "sqr8961pfvb06jblde5meigj6o",
+    "title": "Untitled ",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:52.312Z",
+    "sourcePlatform": "gcal",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "369e6d69-8017-806a-a5b2-de5e03e2be70",
+    "notionId": "369e6d69-8017-806a-a5b2-de5e03e2be70",
+    "gcalId": "us12v4hbpnp69ujkdqjpespb44",
+    "title": "UNIdays",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:53.483Z",
+    "sourcePlatform": "gcal",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "368e6d69-8017-8099-8a2b-f3b3f7cb7a9f",
+    "notionId": "368e6d69-8017-8099-8a2b-f3b3f7cb7a9f",
+    "gcalId": "usrs16cujlg46lpo66ut3f5kpk",
+    "title": "Driving class",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:20.985Z",
+    "sourcePlatform": "gcal",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "368e6d69-8017-80a3-bb14-ec4d92bc7e3b",
+    "notionId": "368e6d69-8017-80a3-bb14-ec4d92bc7e3b",
+    "gcalId": "b5ooarm7p2gabue5qisc3vf2c0",
+    "title": "Freelance Projects",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:53:05.435Z",
+    "sourcePlatform": "gcal",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "368e6d69-8017-80d4-9018-e20a3da01660",
+    "notionId": "368e6d69-8017-80d4-9018-e20a3da01660",
+    "gcalId": "rco0778bjraf8o0jei7ugr5o2o",
+    "title": "Dermatologist appointment",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:51:36.364Z",
+    "sourcePlatform": "gcal",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "368e6d69-8017-80b9-b8b4-da1f47b1c560",
+    "notionId": "368e6d69-8017-80b9-b8b4-da1f47b1c560",
+    "gcalId": "hffgju210d67ghr82m3rksptkk",
+    "title": "Website Update",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T16:52:54.033Z",
+    "sourcePlatform": "gcal",
+    "dueDate": "2026-08-17"
+  },
+  {
+    "id": "3bfe6d69-8017-8001-a3e3-e1aa2863c1b4",
+    "notionId": "3bfe6d69-8017-8001-a3e3-e1aa2863c1b4",
+    "gcalId": "7fl47jknr3ks3n03lmva4lkvd4",
+    "title": "Install Italy apps",
+    "dueDate": "2026-09-02",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T17:11:21.664Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-81e8-bde2-db56661f7533",
+    "notionId": "3bfe6d69-8017-81e8-bde2-db56661f7533",
+    "gcalId": "70sjad1l74om2bb5ccs3gb9k6pijcbb1cks64bb6c9h64oj4c5i3icb664",
+    "title": "Credit card bill",
+    "dueDate": "2026-08-25",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T17:26:38.760Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-810f-b9f1-e94d4ee895a7",
+    "notionId": "3bfe6d69-8017-810f-b9f1-e94d4ee895a7",
+    "gcalId": "kpiikqhdke2rbh24hfs66ths8k",
+    "title": "3 months completed for Vitamin course",
+    "dueDate": "2026-10-15",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T17:23:11.966Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-808e-bf58-f5f8f511ed2e",
+    "notionId": "3bfe6d69-8017-808e-bf58-f5f8f511ed2e",
+    "gcalId": "kvlk66j744s4n49083ogpc8lfo",
+    "title": "license",
+    "dueDate": "2026-08-24",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T17:33:59.174Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-81ed-b553-d8f1299903d4",
+    "notionId": "3bfe6d69-8017-81ed-b553-d8f1299903d4",
+    "gcalId": "5se4agn9090j40mh1jjc2osqu5",
+    "title": "Yellow Kit docs",
+    "dueDate": "2026-08-31",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T17:33:44.423Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-811b-82d4-f2d49154edc2",
+    "notionId": "3bfe6d69-8017-811b-82d4-f2d49154edc2",
+    "gcalId": "2e3eks7474q2p58bh9b9odeqa4",
+    "title": "Fast track immi",
+    "dueDate": "2026-08-31",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-17T17:33:59.667Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-80f1-8e1d-ddea622b20e2",
+    "notionId": "3bfe6d69-8017-80f1-8e1d-ddea622b20e2",
+    "gcalId": "bg0e8a3mch5bdpvjrqn25cgiq8",
+    "title": "gfg",
+    "dueDate": "2026-08-30",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T17:46:19.403Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-80bd-9eec-fbaf8f56327f",
+    "notionId": "3bfe6d69-8017-80bd-9eec-fbaf8f56327f",
+    "gcalId": "45urjkpburarkdepf63gqh8ork",
+    "title": "dsf",
+    "dueDate": "2026-08-28",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T17:48:04.825Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-81fe-83d3-c65af548ba38",
+    "notionId": "3bfe6d69-8017-81fe-83d3-c65af548ba38",
+    "gcalId": "446mgbk09f0b0hlkl7cfccj2l8",
+    "title": "Welcome27",
+    "dueDate": "2026-08-27",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T17:54:59.465Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-81f9-91ab-f11e77901222",
+    "notionId": "3bfe6d69-8017-81f9-91ab-f11e77901222",
+    "gcalId": "oajg4cjpamoqhjmbh6i6n9gl5o",
+    "title": "Helloooooshsj",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T17:59:49.695Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-81f9-ac4b-e051a0f9556a",
+    "notionId": "3bfe6d69-8017-81f9-ac4b-e051a0f9556a",
+    "gcalId": "tlkvsijhr7mbnkorvv1snrv4i0",
+    "gtaskId": "bmdTZnlydzJTb3lxQllpYQ",
+    "title": "Yoooowja",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:03:20.648Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-8162-8a63-cc8c893a1445",
+    "notionId": "3bfe6d69-8017-8162-8a63-cc8c893a1445",
+    "gcalId": "27j72dqt0paern1vc8r1ll3tac",
+    "gtaskId": "X1VJektYS3ktTG4yM1JSWQ",
+    "title": "D2djxqj",
+    "dueDate": "2026-08-28",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:11:39.014Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-812c-993f-ccd9bc9c0ea7",
+    "notionId": "3bfe6d69-8017-812c-993f-ccd9bc9c0ea7",
+    "gcalId": "bpvbi9td0hk4nong3jr2vede7g",
+    "title": "Ejsai",
+    "dueDate": "2026-08-31",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:15:20.694Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3bfe6d69-8017-8169-9387-f1a1fbd5b64a",
+    "notionId": "3bfe6d69-8017-8169-9387-f1a1fbd5b64a",
+    "title": "Fjdisk",
+    "dueDate": "2026-08-26",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:17:50.536Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-8127-bf58-c636cc8d3fe2",
+    "notionId": "3bfe6d69-8017-8127-bf58-c636cc8d3fe2",
+    "gtaskId": "ZF9yd25JMVlkYVVNbFhadg",
+    "title": "Ehsiak",
+    "dueDate": "2026-08-28",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:25:15.809Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-8132-889a-efc4bce7ebcf",
+    "notionId": "3bfe6d69-8017-8132-889a-efc4bce7ebcf",
+    "gtaskId": "X2FYNTFLcTJRcGxSNUJRVA",
+    "title": "Youoyoy",
+    "dueDate": "2026-08-23",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:27:03.580Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-8161-a32e-c7278866bba1",
+    "notionId": "3bfe6d69-8017-8161-a32e-c7278866bba1",
+    "gtaskId": "WHVxemJIXzZSU2xmYUQ5aA",
+    "title": "Vrvrvr",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:30:13.174Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-81c6-8221-c7a7a1f67ae3",
+    "notionId": "3bfe6d69-8017-81c6-8221-c7a7a1f67ae3",
+    "gtaskId": "X2RNUERqWXA0LTg2US1MRg",
+    "title": "Guikm",
+    "dueDate": "2026-08-21",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:36:43.353Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-814e-b2cc-f2dc43ceac81",
+    "notionId": "3bfe6d69-8017-814e-b2cc-f2dc43ceac81",
+    "gtaskId": "Ml91OXRtVGhDNTFiSWdkLQ",
+    "title": "Tty",
+    "dueDate": "2026-08-17",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:39:07.004Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-810b-8d09-c99cdc0f669f",
+    "notionId": "3bfe6d69-8017-810b-8d09-c99cdc0f669f",
+    "gtaskId": "azE5dXhCa0JJdUJSMUEzag",
+    "title": "Ensjs",
+    "dueDate": "2026-08-19",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:43:40.340Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-813c-a4a5-d72f7264d86d",
+    "notionId": "3bfe6d69-8017-813c-a4a5-d72f7264d86d",
+    "gtaskId": "RmNNZU9fUWpacURHUGNrUQ",
+    "title": "Jsiaka",
+    "dueDate": "2026-08-20",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T18:46:33.945Z",
+    "sourcePlatform": "gtask"
+  },
+  {
+    "id": "3bfe6d69-8017-8110-8cfe-eb02e13a564d",
+    "notionId": "3bfe6d69-8017-8110-8cfe-eb02e13a564d",
+    "title": "Yelso",
+    "dueDate": "2026-08-18",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-17T19:02:56.629Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-810e-a55a-e38c282df1a4",
+    "notionId": "3c0e6d69-8017-810e-a55a-e38c282df1a4",
+    "title": "Maintenance ",
+    "dueDate": "2026-07-20",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:06.003Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-8180-9cdd-fb2cec12c547",
+    "notionId": "3c0e6d69-8017-8180-9cdd-fb2cec12c547",
+    "title": "The Odyssey (IMAX 2D) (A)",
+    "dueDate": "2026-07-29",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:07.173Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-8142-bfea-c1dd5b33b94f",
+    "notionId": "3c0e6d69-8017-8142-bfea-c1dd5b33b94f",
+    "title": "Stay at Reach Residency",
+    "dueDate": "2026-08-11",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:08.463Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-815b-8270-d835ae30827d",
+    "notionId": "3c0e6d69-8017-815b-8270-d835ae30827d",
+    "title": "Flight to Kochi (IX 1801)",
+    "dueDate": "2026-08-11",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:09.524Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-81a5-b91f-e880322c8d29",
+    "notionId": "3c0e6d69-8017-81a5-b91f-e880322c8d29",
+    "title": "Flight to Mumbai (6E 674)",
+    "dueDate": "2026-08-12",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:10.522Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-8150-bae6-e586b90caf9d",
+    "notionId": "3c0e6d69-8017-8150-bae6-e586b90caf9d",
+    "title": "Book spiderman tickets ",
+    "dueDate": "2026-08-13",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:11.512Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-8170-8ffe-fca1b8f5a234",
+    "notionId": "3c0e6d69-8017-8170-8ffe-fca1b8f5a234",
+    "title": "Solapur bus ",
+    "dueDate": "2026-08-13",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:12.603Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-8146-91e5-f188694e8958",
+    "notionId": "3c0e6d69-8017-8146-91e5-f188694e8958",
+    "title": "Spider-Man: Brand New Day (3D) (UA13+)",
+    "dueDate": "2026-08-13",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:13.675Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-8108-8984-f055002fb4bc",
+    "notionId": "3c0e6d69-8017-8108-8984-f055002fb4bc",
+    "title": "Train to SOLAPUR JN (SUR)",
+    "dueDate": "2026-08-15",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:14.947Z",
+    "sourcePlatform": "gcal"
+  },
+  {
+    "id": "3c0e6d69-8017-8109-b4b9-f70d9e1c25a5",
+    "notionId": "3c0e6d69-8017-8109-b4b9-f70d9e1c25a5",
+    "title": "Happy birthday!",
+    "dueDate": "2026-08-18",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T08:13:16.239Z",
+    "sourcePlatform": "gcal"
+  }
+]
