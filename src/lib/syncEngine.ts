@@ -48,6 +48,10 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     // =========================================================================
     // 2. BI-DIRECTIONAL DELETION & CONFLICT RESOLUTION
     // =========================================================================
+    const deletedNotionIds = new Set<string>();
+    const deletedGCalIds = new Set<string>();
+    const deletedTitles = new Set<string>();
+
     for (const mapping of [...allMappings]) {
       if (mapping.isCompleted) continue;
 
@@ -62,6 +66,10 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           await deleteGoogleCalendarEvent(mapping.gcalId);
           addLog(`Deleted event "${mapping.title}" from Google Calendar (Notion task removed/completed)`, 'success');
         }
+        if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
+        if (mapping.gcalId) deletedGCalIds.add(mapping.gcalId);
+        deletedTitles.add(mapping.title.trim().toLowerCase());
+
         mapping.isCompleted = true;
         mapping.gcalId = undefined;
         upsertMapping(mapping);
@@ -74,6 +82,10 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           await deleteNotionTaskPage(mapping.notionId);
           addLog(`Archived task "${mapping.title}" in Notion (deleted from Google Calendar)`, 'success');
         }
+        if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
+        if (mapping.gcalId) deletedGCalIds.add(mapping.gcalId);
+        deletedTitles.add(mapping.title.trim().toLowerCase());
+
         mapping.isCompleted = true;
         mapping.notionId = undefined;
         upsertMapping(mapping);
@@ -85,8 +97,17 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     // 3. NOTION TASKS -> GOOGLE CALENDAR
     // =========================================================================
     for (const nTask of uncheckedNotionTasks) {
+      const normalizedTitle = nTask.title.trim().toLowerCase();
+      if (deletedNotionIds.has(nTask.id) || deletedTitles.has(normalizedTitle)) {
+        continue; // Skip tasks deleted/completed in Step 2
+      }
+
       let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);
       const descriptionText = buildDescription(nTask.notes, nTask.url);
+
+      if (mapping && mapping.isCompleted) {
+        continue; // Do not resurrect completed/deleted mapping
+      }
 
       if (mapping && !mapping.isCompleted) {
         const titleChanged = nTask.title !== mapping.title;
@@ -112,7 +133,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       } else if (!mapping) {
         const existingGCalEvent = gcalEvents.find(
-          (evt) => evt.summary.trim().toLowerCase() === nTask.title.trim().toLowerCase()
+          (evt) => evt.summary.trim().toLowerCase() === normalizedTitle
         );
 
         if (existingGCalEvent) {
@@ -147,17 +168,27 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // =========================================================================
-    // 4. GOOGLE CALENDAR -> NOTION TASKS (Skip Past Events)
+    // 4. GOOGLE CALENDAR -> NOTION TASKS (Skip Past Events & Deleted Items)
     // =========================================================================
     const todayStr = new Date().toISOString().split('T')[0];
 
     for (const evt of gcalEvents) {
-      // Ignore past Google Calendar events
+      const normalizedSummary = evt.summary.trim().toLowerCase();
+
+      // Skip deleted events or past events
+      if (deletedGCalIds.has(evt.id) || deletedTitles.has(normalizedSummary)) {
+        continue;
+      }
+
       if (evt.start && evt.start < todayStr) {
         continue;
       }
 
       let mapping = findMappingByGCalId(evt.id) || findMappingByTitle(evt.summary);
+
+      if (mapping && mapping.isCompleted) {
+        continue; // Do not resurrect completed/deleted mapping
+      }
 
       if (mapping && !mapping.isCompleted) {
         const titleChanged = evt.summary !== mapping.title;
@@ -182,7 +213,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       } else if (!mapping) {
         const existingNotionTask = allNotionTasks.find(
-          (t) => t.title.trim().toLowerCase() === evt.summary.trim().toLowerCase() && !t.isCompleted
+          (t) => t.title.trim().toLowerCase() === normalizedSummary && !t.isCompleted
         );
 
         if (existingNotionTask) {
