@@ -22,10 +22,10 @@
   {
     "id": "3c0e6d69-8017-80a3-9e6e-f6f93fe51e7b",
     "notionId": "3c0e6d69-8017-80a3-9e6e-f6f93fe51e7b",
-    "title": "ASP letter",
+    "title": "ASP Letter",
     "dueDate": "2026-08-18",
     "isCompleted": false,
-    "lastUpdated": "2026-08-18T09:46:35.234Z",
+    "lastUpdated": "2026-08-18T09:58:31.003Z",
     "sourcePlatform": "notion",
     "gcalId": "nq9k2n78qd5kmmb38eahpkg68o"
   },
@@ -180,10 +180,10 @@
   {
     "id": "3c0e6d69-8017-8009-8815-d19d2a3b64eb",
     "notionId": "3c0e6d69-8017-8009-8815-d19d2a3b64eb",
-    "title": "Study plan",
+    "title": "Study Plan",
     "dueDate": "2026-08-26",
     "isCompleted": false,
-    "lastUpdated": "2026-08-18T09:46:33.848Z",
+    "lastUpdated": "2026-08-18T09:58:29.489Z",
     "sourcePlatform": "notion",
     "gcalId": "jf8fk7qlpnhpug05l7ts3gr468"
   },
@@ -614,6 +614,26 @@
     "dueDate": "2026-08-19",
     "isCompleted": true,
     "lastUpdated": "2026-08-18T09:38:46.370Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3c0e6d69-8017-80f4-ba57-f2da24490453",
+    "notionId": "3c0e6d69-8017-80f4-ba57-f2da24490453",
+    "gcalId": "fion1h2chaosq28ucs3to3d9hc",
+    "title": "joivy",
+    "dueDate": "2026-08-18",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-18T09:58:41.627Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3c0e6d69-8017-80f6-957b-d9ac9fae99ee",
+    "notionId": "3c0e6d69-8017-80f6-957b-d9ac9fae99ee",
+    "gcalId": "a8mtruc5h8pmk7mcbr0u2ntodg",
+    "title": "italian language",
+    "dueDate": "2026-08-18",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-18T09:58:34.694Z",
     "sourcePlatform": "notion"
   }
 ]

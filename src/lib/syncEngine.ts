@@ -47,6 +47,28 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     };
 
     // =========================================================================
+    // 1.5 AUTOMATED GOOGLE CALENDAR DEDUPLICATION PASS
+    // =========================================================================
+    const activeGCalEventsByTitle = new Map<string, GCalEventItem[]>();
+    for (const evt of activeGCalEvents) {
+      const titleKey = evt.summary.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (!activeGCalEventsByTitle.has(titleKey)) {
+        activeGCalEventsByTitle.set(titleKey, []);
+      }
+      activeGCalEventsByTitle.get(titleKey)!.push(evt);
+    }
+
+    for (const [titleKey, evts] of activeGCalEventsByTitle.entries()) {
+      if (evts.length > 1) {
+        for (let i = 1; i < evts.length; i++) {
+          const duplicateEvt = evts[i];
+          await deleteGoogleCalendarEvent(duplicateEvt.id);
+          addLog(`Cleaned up duplicate event "${duplicateEvt.summary}" from Google Calendar`, 'info');
+        }
+      }
+    }
+
+    // =========================================================================
     // 2. SAFE BI-DIRECTIONAL DELETION & CONFLICT RESOLUTION
     // =========================================================================
     const deletedNotionIds = new Set<string>();
