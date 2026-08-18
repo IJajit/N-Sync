@@ -32,10 +32,11 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     const notionTaskIds = new Set(allNotionTasks.map((t) => t.id));
     const allMappings = getMappings();
 
-    const buildDescription = (notes?: string, url?: string) => {
+    const buildDescription = (notes?: string, url?: string, notionPageUrl?: string) => {
       const parts: string[] = [];
       if (notes) parts.push(`Notes:\n${notes}`);
-      if (url) parts.push(`Link: ${url}`);
+      if (url) parts.push(`Website: ${url}`);
+      if (notionPageUrl) parts.push(`Notion Task: ${notionPageUrl}`);
       return parts.length > 0 ? parts.join('\n\n') : undefined;
     };
 
@@ -125,7 +126,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       }
 
       let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);
-      const descriptionText = buildDescription(nTask.notes, nTask.url);
+      const descriptionText = buildDescription(nTask.notes, nTask.url, nTask.notionPageUrl);
 
       if (mapping && mapping.isCompleted) {
         continue;
@@ -135,8 +136,9 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         createdGCalTitlesInRun.add(cleanTitleKey);
         const titleChanged = nTask.title !== mapping.title;
         const dateChanged = nTask.dueDate !== mapping.dueDate;
+        const descriptionChanged = descriptionText !== mapping.description;
 
-        if (titleChanged || dateChanged) {
+        if (titleChanged || dateChanged || descriptionChanged) {
           if (mapping.gcalId) {
             await updateGoogleCalendarEvent(mapping.gcalId, {
               title: nTask.title,
@@ -147,11 +149,13 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
           mapping.title = nTask.title;
           mapping.dueDate = nTask.dueDate;
+          mapping.description = descriptionText;
           mapping.notionId = nTask.id;
           upsertMapping(mapping);
-          addLog(`Updated Google Calendar event for Notion task "${nTask.title}"`, 'success');
+          addLog(`Updated Google Calendar event details for Notion task "${nTask.title}"`, 'success');
         } else if (!mapping.notionId) {
           mapping.notionId = nTask.id;
+          mapping.description = descriptionText;
           upsertMapping(mapping);
         }
       } else if (!mapping) {

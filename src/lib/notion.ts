@@ -15,6 +15,7 @@ export interface NotionTaskItem {
   lastEditedTime: string;
   notes?: string;
   url?: string;
+  notionPageUrl?: string;
 }
 
 export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
@@ -154,6 +155,8 @@ function parseNotionPage(page: any): NotionTaskItem | null {
     }
   }
 
+  const notionPageUrl = page.url || `https://www.notion.so/${page.id.replace(/-/g, '')}`;
+
   return {
     id: page.id,
     title,
@@ -162,6 +165,7 @@ function parseNotionPage(page: any): NotionTaskItem | null {
     lastEditedTime: page.last_edited_time,
     notes,
     url,
+    notionPageUrl,
   };
 }
 

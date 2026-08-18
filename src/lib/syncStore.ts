@@ -9,6 +9,7 @@ export interface TaskMapping {
   gtaskId?: string;
   title: string;
   dueDate?: string; // ISO String
+  description?: string;
   isCompleted: boolean;
   lastUpdated: string; // ISO String
   sourcePlatform: 'notion' | 'gcal' | 'gtask';
