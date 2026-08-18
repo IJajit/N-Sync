@@ -84,10 +84,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
       // Case B: Event explicitly cancelled/deleted in Google Calendar
       if (mapping.gcalId && isExplicitlyCancelledInGCal) {
-        if (mapping.notionId && notionTaskExists) {
-          await deleteNotionTaskPage(mapping.notionId);
-          addLog(`Archived task "${mapping.title}" in Notion (deleted from Google Calendar)`, 'success');
-        }
         if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
         if (mapping.gcalId) deletedGCalIds.add(mapping.gcalId);
         deletedTitles.add(mapping.title.trim().toLowerCase());
