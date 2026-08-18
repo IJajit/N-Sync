@@ -26,8 +26,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     logs.push({ timestamp: new Date().toISOString(), message, type });
   };
 
-  addLog('Starting 2-way Notion Database <-> Google Calendar live sync cycle...', 'info');
-
   try {
     // 1. Fetch data from Notion Tasks and Google Calendar ("Notion" calendar)
     const [allNotionTasks, gcalEvents] = await Promise.all([
@@ -36,12 +34,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     ]);
 
     const uncheckedNotionTasks = allNotionTasks.filter((t) => !t.isCompleted);
-
-    addLog(
-      `Fetched ${allNotionTasks.length} Notion Tasks (${uncheckedNotionTasks.length} unchecked), ${gcalEvents.length} Google Calendar events.`,
-      'info'
-    );
-
     const gcalEventIds = new Set(gcalEvents.map((e) => e.id));
     const notionTaskIds = new Set(allNotionTasks.map((t) => t.id));
     const allMappings = getMappings();
@@ -73,8 +65,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       }
 
       if (isTaskNowCompletedOrDeleted && !mapping.isCompleted) {
-        addLog(`Task "${mapping.title}" completed/deleted on one platform. Syncing status...`, 'warning');
-
         // Mark as checked/completed in Notion (do not archive page)
         if (mapping.notionId && notionTaskIds.has(mapping.notionId)) {
           const currentNotionTask = allNotionTasks.find((t) => t.id === mapping.notionId);
@@ -108,8 +98,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         const dateChanged = nTask.dueDate !== mapping.dueDate;
 
         if (titleChanged || dateChanged) {
-          addLog(`Notion task "${mapping.title}" updated. Patching Google Calendar event...`, 'info');
-
           if (mapping.gcalId) {
             await updateGoogleCalendarEvent(mapping.gcalId, {
               title: nTask.title,
@@ -122,6 +110,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           mapping.dueDate = nTask.dueDate;
           mapping.notionId = nTask.id;
           upsertMapping(mapping);
+          addLog(`Updated Google Calendar event for Notion task "${nTask.title}"`, 'success');
         } else if (!mapping.notionId) {
           mapping.notionId = nTask.id;
           upsertMapping(mapping);
@@ -132,7 +121,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         );
 
         if (existingGCalEvent) {
-          addLog(`Existing GCal event found for "${nTask.title}". Linking together...`, 'info');
           upsertMapping({
             id: nTask.id,
             notionId: nTask.id,
@@ -143,8 +131,8 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'notion',
           });
+          addLog(`Linked Notion task "${nTask.title}" to existing Google Calendar event`, 'success');
         } else {
-          addLog(`Creating Google Calendar event for Notion task "${nTask.title}"...`, 'info');
           const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
 
           upsertMapping({
@@ -174,8 +162,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         const dateChanged = evt.start !== mapping.dueDate;
 
         if (titleChanged || dateChanged) {
-          addLog(`GCal event "${mapping.title}" date/title changed (new date: ${evt.start}). Updating Notion...`, 'info');
-
           if (mapping.notionId) {
             await updateNotionTask(mapping.notionId, {
               title: evt.summary,
@@ -187,6 +173,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           mapping.dueDate = evt.start;
           mapping.gcalId = evt.id;
           upsertMapping(mapping);
+          addLog(`Updated Notion task for GCal event "${evt.summary}"`, 'success');
         } else if (!mapping.gcalId) {
           mapping.gcalId = evt.id;
           upsertMapping(mapping);
@@ -197,7 +184,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         );
 
         if (existingNotionTask) {
-          addLog(`Linking GCal event "${evt.summary}" to existing Notion task...`, 'info');
           upsertMapping({
             id: existingNotionTask.id,
             notionId: existingNotionTask.id,
@@ -208,8 +194,8 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'gcal',
           });
+          addLog(`Linked GCal event "${evt.summary}" to existing Notion task`, 'success');
         } else {
-          addLog(`Creating Notion task for GCal event "${evt.summary}"...`, 'info');
           const notionId = await createNotionTask(evt.summary, evt.start, false);
 
           if (notionId) {
@@ -228,8 +214,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       }
     }
-
-    addLog('2-way Notion <-> Google Calendar live sync cycle finished clean.', 'success');
   } catch (error: any) {
     addLog(`Error during sync execution: ${error?.message || error}`, 'error');
   }
