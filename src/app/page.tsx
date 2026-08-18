@@ -73,9 +73,10 @@ export default function SyncDashboard() {
             Calendar Sync
           </h1>
 
-          {/* Action Bar & High Visibility Toggle */}
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6 bg-[#0e0e10] border border-neutral-800 px-4 py-2.5">
-            <label className="flex items-center gap-3 cursor-pointer select-none group">
+          {/* Minimal Controls Bar: Toggle & Sync Icon Button */}
+          <div className="flex items-center gap-3 bg-[#0e0e10] border border-neutral-800 px-3 py-2">
+            {/* 1. Toggle for Live Sync */}
+            <label className="flex items-center cursor-pointer select-none" title="Toggle Live Auto Sync">
               <div className="relative inline-flex items-center">
                 <input
                   type="checkbox"
@@ -83,29 +84,21 @@ export default function SyncDashboard() {
                   onChange={(e) => setAutoSync(e.target.checked)}
                   className="sr-only peer"
                 />
-                {/* Switch Track with High Contrast Emerald State */}
-                <div className="w-12 h-6 bg-neutral-800 border border-neutral-700 rounded-full peer peer-checked:bg-emerald-500 peer-checked:border-emerald-400 transition-colors"></div>
+                {/* Switch Track */}
+                <div className="w-10 h-5 bg-neutral-800 border border-neutral-700 rounded-full peer peer-checked:bg-emerald-500 peer-checked:border-emerald-400 transition-colors"></div>
                 {/* Switch Knob */}
-                <div className="absolute left-[3px] top-[3px] w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6"></div>
+                <div className="absolute left-[2px] top-[2px] w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
               </div>
-              <span className="text-xs font-mono tracking-wider font-medium text-neutral-300 group-hover:text-white">
-                Live auto sync (15s)
-              </span>
             </label>
 
-            <span className="hidden sm:inline text-neutral-800 font-mono">|</span>
-
-            <span className="text-[11px] font-mono text-neutral-400">
-              {lastSyncedTime ? `Last sync: ${lastSyncedTime}` : 'Ready'}
-            </span>
-
+            {/* 2. Minimal Sync Icon Button */}
             <button
               onClick={triggerSync}
               disabled={syncing}
-              className="inline-flex items-center justify-center gap-2 bg-white hover:bg-neutral-200 disabled:opacity-50 text-black font-semibold text-xs tracking-wide px-5 py-2 transition-all cursor-pointer active:scale-95 ml-auto sm:ml-0"
+              title={syncing ? 'Syncing...' : 'Sync now'}
+              className="inline-flex items-center justify-center p-2 bg-white hover:bg-neutral-200 disabled:opacity-50 text-black transition-all cursor-pointer active:scale-95"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Syncing...' : 'Sync now'}
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </header>
