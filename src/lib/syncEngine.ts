@@ -274,9 +274,17 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
             continue;
           }
 
+          createdNotionTitlesInRun.add(normalizedSummary);
+
           const notionId = await createNotionTask(evt.summary, evt.start, false, evt.description);
           if (notionId) {
-            createdNotionTitlesInRun.add(normalizedSummary);
+            allNotionTasks.push({
+              id: notionId,
+              title: evt.summary,
+              isCompleted: false,
+              dueDate: evt.start,
+              lastEditedTime: new Date().toISOString(),
+            });
             upsertMapping({
               id: notionId,
               notionId,
