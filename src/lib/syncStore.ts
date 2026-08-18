@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 export interface TaskMapping {
   id: string; // Internal UUID or Notion ID
@@ -13,12 +14,19 @@ export interface TaskMapping {
   sourcePlatform: 'notion' | 'gcal' | 'gtask';
 }
 
-const DB_FILE = path.join(process.cwd(), 'sync_data.json');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === 'production');
+const DB_FILE = isServerless
+  ? path.join(os.tmpdir(), 'sync_data.json')
+  : path.join(process.cwd(), 'sync_data.json');
 
 export function getMappings(): TaskMapping[] {
   try {
     if (!fs.existsSync(DB_FILE)) {
-      fs.writeFileSync(DB_FILE, JSON.stringify([]));
+      try {
+        fs.writeFileSync(DB_FILE, JSON.stringify([]));
+      } catch (e) {
+        // Read-only filesystem fallback
+      }
       return [];
     }
     const data = fs.readFileSync(DB_FILE, 'utf-8');
