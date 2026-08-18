@@ -107,16 +107,6 @@ export default function SyncDashboard() {
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Syncing...' : 'Sync now'}
             </button>
-
-            <button
-              onClick={() => {
-                setAutoSync(false);
-                setLogs((prev) => [{ timestamp: new Date().toISOString(), message: 'Live sync halted by user.', type: 'warning' }, ...prev]);
-              }}
-              className="inline-flex items-center justify-center gap-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-800/80 text-rose-300 font-semibold text-xs tracking-wide px-4 py-2 transition-all cursor-pointer active:scale-95"
-            >
-              Stop Sync
-            </button>
           </div>
         </header>
 

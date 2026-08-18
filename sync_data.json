@@ -25,9 +25,10 @@
     "title": "ASP Letter",
     "dueDate": "2026-08-18",
     "isCompleted": false,
-    "lastUpdated": "2026-08-18T09:58:31.003Z",
+    "lastUpdated": "2026-08-18T10:20:36.039Z",
     "sourcePlatform": "notion",
-    "gcalId": "nq9k2n78qd5kmmb38eahpkg68o"
+    "gcalId": "nq9k2n78qd5kmmb38eahpkg68o",
+    "description": "Notion Task: https://app.notion.com/p/ASP-Letter-3c0e6d69801780a39e6ef6f93fe51e7b"
   },
   {
     "id": "3bfe6d69-8017-8107-8653-e1edae0d9c80",
@@ -183,9 +184,10 @@
     "title": "Study Plan",
     "dueDate": "2026-08-26",
     "isCompleted": false,
-    "lastUpdated": "2026-08-18T09:58:29.489Z",
+    "lastUpdated": "2026-08-18T10:20:37.706Z",
     "sourcePlatform": "notion",
-    "gcalId": "jf8fk7qlpnhpug05l7ts3gr468"
+    "gcalId": "jf8fk7qlpnhpug05l7ts3gr468",
+    "description": "Notion Task: https://app.notion.com/p/Study-Plan-3c0e6d69801780098815d19d2a3b64eb"
   },
   {
     "id": "3b1e6d69-8017-8054-8ed9-c31fb0bc391e",
@@ -194,8 +196,9 @@
     "title": "Italian language course",
     "dueDate": "2026-08-26",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T16:45:36.182Z",
-    "sourcePlatform": "notion"
+    "lastUpdated": "2026-08-18T10:20:46.332Z",
+    "sourcePlatform": "notion",
+    "description": "Notion Task: https://app.notion.com/p/Italian-language-course-3b1e6d69801780548ed9c31fb0bc391e"
   },
   {
     "id": "3b1e6d69-8017-8007-80f9-cc3ceccf433f",
@@ -204,18 +207,20 @@
     "title": "Safety Training Course",
     "dueDate": "2026-08-27",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T16:45:37.466Z",
-    "sourcePlatform": "notion"
+    "lastUpdated": "2026-08-18T10:20:47.462Z",
+    "sourcePlatform": "notion",
+    "description": "Notion Task: https://app.notion.com/p/Safety-Training-Course-3b1e6d698017800780f9cc3ceccf433f"
   },
   {
     "id": "3bfe6d69-8017-807f-b993-fbb648bcb111",
     "notionId": "3bfe6d69-8017-807f-b993-fbb648bcb111",
     "title": "IDP license",
     "isCompleted": false,
-    "lastUpdated": "2026-08-18T09:38:32.120Z",
+    "lastUpdated": "2026-08-18T10:20:38.879Z",
     "sourcePlatform": "notion",
     "dueDate": "2026-08-24",
-    "gcalId": "c4s66d336ti3eb9jccr3gb9k6hij2b9p6tgmabb374qjaphkcdj3ap9h70"
+    "gcalId": "c4s66d336ti3eb9jccr3gb9k6hij2b9p6tgmabb374qjaphkcdj3ap9h70",
+    "description": "Notion Task: https://app.notion.com/p/IDP-license-3bfe6d698017807fb993fbb648bcb111"
   },
   {
     "id": "399e6d69-8017-8009-bbba-f7d47fae5329",
@@ -304,8 +309,9 @@
     "title": "Install Italy apps",
     "dueDate": "2026-09-02",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T17:11:21.664Z",
-    "sourcePlatform": "notion"
+    "lastUpdated": "2026-08-18T10:20:45.244Z",
+    "sourcePlatform": "notion",
+    "description": "Notion Task: https://app.notion.com/p/Install-Italy-apps-3bfe6d6980178001a3e3e1aa2863c1b4"
   },
   {
     "id": "3bfe6d69-8017-81e8-bde2-db56661f7533",
@@ -314,8 +320,9 @@
     "title": "Credit card bill",
     "dueDate": "2026-08-25",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T17:26:38.760Z",
-    "sourcePlatform": "gcal"
+    "lastUpdated": "2026-08-18T10:20:42.423Z",
+    "sourcePlatform": "gcal",
+    "description": "Notion Task: https://app.notion.com/p/Credit-card-bill-3bfe6d69801781e8bde2db56661f7533"
   },
   {
     "id": "3bfe6d69-8017-810f-b9f1-e94d4ee895a7",
@@ -324,8 +331,9 @@
     "title": "3 months completed for Vitamin course",
     "dueDate": "2026-10-15",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T17:23:11.966Z",
-    "sourcePlatform": "notion"
+    "lastUpdated": "2026-08-18T10:20:43.540Z",
+    "sourcePlatform": "notion",
+    "description": "Notion Task: https://app.notion.com/p/3-months-completed-for-Vitamin-course-3bfe6d698017810fb9f1e94d4ee895a7"
   },
   {
     "id": "3bfe6d69-8017-808e-bf58-f5f8f511ed2e",
@@ -344,8 +352,9 @@
     "title": "Yellow Kit docs",
     "dueDate": "2026-08-31",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T17:33:44.423Z",
-    "sourcePlatform": "gcal"
+    "lastUpdated": "2026-08-18T10:20:39.878Z",
+    "sourcePlatform": "gcal",
+    "description": "Notion Task: https://app.notion.com/p/Yellow-Kit-docs-3bfe6d69801781edb553d8f1299903d4"
   },
   {
     "id": "3bfe6d69-8017-811b-82d4-f2d49154edc2",
@@ -354,8 +363,9 @@
     "title": "Fast track immi",
     "dueDate": "2026-08-31",
     "isCompleted": false,
-    "lastUpdated": "2026-08-17T17:33:59.667Z",
-    "sourcePlatform": "gcal"
+    "lastUpdated": "2026-08-18T10:20:41.159Z",
+    "sourcePlatform": "gcal",
+    "description": "Notion Task: https://app.notion.com/p/Fast-track-immi-3bfe6d698017811b82d4f2d49154edc2"
   },
   {
     "id": "3bfe6d69-8017-80f1-8e1d-ddea622b20e2",
@@ -627,12 +637,11 @@
   },
   {
     "id": "3c0e6d69-8017-80f6-957b-d9ac9fae99ee",
-    "notionId": "3c0e6d69-8017-80f6-957b-d9ac9fae99ee",
     "gcalId": "a8mtruc5h8pmk7mcbr0u2ntodg",
     "title": "italian language",
     "dueDate": "2026-08-18",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T09:58:34.694Z",
+    "isCompleted": true,
+    "lastUpdated": "2026-08-18T10:20:34.757Z",
     "sourcePlatform": "notion"
   }
 ]
