@@ -100,12 +100,19 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // =========================================================================
-    // 3. NOTION TASKS -> GOOGLE CALENDAR
+    // 3. NOTION TASKS -> GOOGLE CALENDAR (Skip Past Tasks)
     // =========================================================================
+    const todayStr = new Date().toISOString().split('T')[0];
+
     for (const nTask of uncheckedNotionTasks) {
       const normalizedTitle = nTask.title.trim().toLowerCase();
       if (deletedNotionIds.has(nTask.id) || deletedTitles.has(normalizedTitle)) {
         continue; // Skip tasks deleted/completed in Step 2
+      }
+
+      // Skip past Notion tasks
+      if (nTask.dueDate && nTask.dueDate < todayStr) {
+        continue;
       }
 
       let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);

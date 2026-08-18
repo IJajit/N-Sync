@@ -7,7 +7,7 @@ export default function SyncDashboard() {
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [mappings, setMappings] = useState<any[]>([]);
-  const [autoSync, setAutoSync] = useState(true);
+  const [autoSync, setAutoSync] = useState(false);
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
 
   const triggerSync = async () => {
