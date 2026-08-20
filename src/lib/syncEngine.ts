@@ -150,21 +150,24 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     // 3. SEQUENTIAL CREATION WORKFLOW (GTask -> GCal -> Notion / GCal -> Notion & GTask / Notion -> GCal & GTask)
     // =========================================================================
     
-    // Step A: Process Google Tasks -> ensure GCal event exists, then trigger Notion database task creation
+    // Step A: Process Google Tasks -> ensure GCal event & Notion page exist, and propagate notes updates
     for (const gtask of activeGTasks) {
       if (gtask.status === 'completed' || deletedGTaskIds.has(gtask.id)) continue;
       const cleanTitleKey = gtask.title.trim().toLowerCase().replace(/\s+/g, ' ');
 
       let mapping = findMappingByGTaskId(gtask.id) || findMappingByTitle(gtask.title);
 
-      // Ensure Google Calendar event exists
+      // Ensure Google Calendar event exists or update description if changed in GTasks
       let gcalId = mapping?.gcalId;
       if (!gcalId) {
         const existingGCal = activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         gcalId = existingGCal ? existingGCal.id : (await createGoogleCalendarEvent(gtask.title, gtask.due, gtask.notes)) || undefined;
+      } else if (mapping && gtask.notes && mapping.description !== gtask.notes) {
+        await updateGoogleCalendarEvent(gcalId, { title: gtask.title, description: gtask.notes, dueDate: gtask.due });
+        addLog(`Updated Google Calendar description for "${gtask.title}"`, 'info');
       }
 
-      // Ensure Notion task page exists
+      // Ensure Notion task page exists or update notes if changed in GTasks
       let notionId = mapping?.notionId;
       if (!notionId) {
         const existingNotion = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
@@ -172,6 +175,9 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         if (notionId) {
           addLog(`Synced Google Task "${gtask.title}" to Notion database!`, 'success');
         }
+      } else if (mapping && gtask.notes && mapping.description !== gtask.notes) {
+        await updateNotionTask(notionId, { notes: gtask.notes, title: gtask.title, dueDate: gtask.due });
+        addLog(`Updated Notion notes for "${gtask.title}"`, 'info');
       }
 
       upsertMapping({
@@ -188,7 +194,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       });
     }
 
-    // Step B: Process Google Calendar Events -> ensure Notion task & Google Task exist
+    // Step B: Process Google Calendar Events -> ensure Notion task & Google Task exist, and propagate description updates
     for (const evt of activeGCalEvents) {
       if (deletedGCalIds.has(evt.id)) continue;
       const cleanTitleKey = evt.summary.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -199,6 +205,9 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       if (!gtaskId) {
         const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         gtaskId = existingGTask ? existingGTask.id : (await createGoogleTask(evt.summary, evt.start, evt.description)) || undefined;
+      } else if (mapping && evt.description && mapping.description !== evt.description) {
+        await updateGoogleTask(gtaskId, { notes: evt.description, title: evt.summary, dueDate: evt.start });
+        addLog(`Updated Google Task notes for "${evt.summary}"`, 'info');
       }
 
       let notionId = mapping?.notionId;
@@ -208,6 +217,9 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         if (notionId) {
           addLog(`Synced Google Calendar event "${evt.summary}" to Notion database!`, 'success');
         }
+      } else if (mapping && evt.description && mapping.description !== evt.description) {
+        await updateNotionTask(notionId, { notes: evt.description, title: evt.summary, dueDate: evt.start });
+        addLog(`Updated Notion notes for "${evt.summary}"`, 'info');
       }
 
       upsertMapping({
@@ -224,7 +236,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       });
     }
 
-    // Step C: Process Notion Tasks -> ensure GCal event & Google Task exist
+    // Step C: Process Notion Tasks -> ensure GCal event & Google Task exist, and propagate notes updates
     for (const nTask of allNotionTasks) {
       if (nTask.isCompleted || deletedNotionIds.has(nTask.id)) continue;
       const cleanTitleKey = nTask.title.trim().toLowerCase().replace(/\s+/g, ' ');
