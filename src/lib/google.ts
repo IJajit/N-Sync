@@ -249,9 +249,9 @@ export async function getToDoListId(): Promise<string> {
     const res = await tasksApi.tasklists.list({ maxResults: 100 });
     const lists = res.data.items || [];
 
-    // Search for existing list named "To Do List" or "To Do"
+    // Search for existing list named "To Do List", "To Do", "My Tasks", or default
     const toDoList = lists.find(
-      (l) => l.title && (l.title.trim().toLowerCase() === 'to do list' || l.title.trim().toLowerCase() === 'todo list' || l.title.trim().toLowerCase() === 'to do')
+      (l) => l.title && (l.title.trim().toLowerCase().includes('to do') || l.title.trim().toLowerCase().includes('todo') || l.title.trim().toLowerCase().includes('task'))
     );
 
     if (toDoList && toDoList.id) {
@@ -259,19 +259,12 @@ export async function getToDoListId(): Promise<string> {
       return toDoList.id;
     }
 
-    // Create "To Do List" if it doesn't exist
-    const newList = await tasksApi.tasklists.insert({
-      requestBody: {
-        title: 'To Do List',
-      },
-    });
-
-    if (newList.data.id) {
-      cachedToDoListId = newList.data.id;
-      return newList.data.id;
+    if (lists.length > 0 && lists[0].id) {
+      cachedToDoListId = lists[0].id;
+      return lists[0].id;
     }
   } catch (err) {
-    console.error('Error finding or creating Google Tasks "To Do List":', err);
+    console.error('Error finding Google Tasks list:', err);
   }
 
   return '@default';
