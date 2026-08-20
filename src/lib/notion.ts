@@ -24,26 +24,49 @@ export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
 
   try {
     let allResults: any[] = [];
-    let hasMore = true;
-    let nextCursor: string | undefined = undefined;
 
-    while (hasMore) {
-      const response: any = await notion.search({
-        query: '',
-        filter: {
-          value: 'page',
-          property: 'object',
-        } as any,
-        page_size: 100,
-        start_cursor: nextCursor,
-      });
+    // Try direct database query first (most reliable for specific database)
+    try {
+      let hasMore = true;
+      let nextCursor: string | undefined = undefined;
 
-      if (response.results) {
-        allResults = allResults.concat(response.results);
+      while (hasMore) {
+        const response: any = await (notion.databases as any).query({
+          database_id: NOTION_TASKS_DB_ID,
+          page_size: 100,
+          start_cursor: nextCursor,
+        });
+
+        if (response.results) {
+          allResults = allResults.concat(response.results);
+        }
+
+        hasMore = response.has_more;
+        nextCursor = response.next_cursor || undefined;
       }
+    } catch (dbQueryErr) {
+      console.warn('Direct database query failed, falling back to search:', dbQueryErr);
+      let hasMore = true;
+      let nextCursor: string | undefined = undefined;
 
-      hasMore = response.has_more;
-      nextCursor = response.next_cursor || undefined;
+      while (hasMore) {
+        const response: any = await notion.search({
+          query: '',
+          filter: {
+            value: 'page',
+            property: 'object',
+          } as any,
+          page_size: 100,
+          start_cursor: nextCursor,
+        });
+
+        if (response.results) {
+          allResults = allResults.concat(response.results);
+        }
+
+        hasMore = response.has_more;
+        nextCursor = response.next_cursor || undefined;
+      }
     }
 
     const targetDbId = NOTION_TASKS_DB_ID ? NOTION_TASKS_DB_ID.replace(/-/g, '') : null;
@@ -52,7 +75,7 @@ export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
       .filter((page: any) => {
         if (!targetDbId) return true;
         const pageDbId = page.parent?.database_id ? page.parent.database_id.replace(/-/g, '') : null;
-        return pageDbId === targetDbId;
+        return pageDbId ? pageDbId === targetDbId : true;
       })
       .map((page: any) => parseNotionPage(page))
       .filter((item): item is NotionTaskItem => item !== null);
