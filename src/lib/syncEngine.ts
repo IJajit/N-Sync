@@ -69,56 +69,56 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     const deletedGCalIds = new Set<string>();
 
     for (const mapping of [...allMappings]) {
-      if (mapping.isCompleted) continue;
-
       const notionTaskExists = mapping.notionId ? notionTaskIds.has(mapping.notionId) : false;
       const currentNotionTask = mapping.notionId ? allNotionTasks.find((t) => t.id === mapping.notionId) : undefined;
       const notionTaskCompleted = currentNotionTask ? currentNotionTask.isCompleted : false;
       const gcalEvt = mapping.gcalId ? gcalEvents.find((e) => e.id === mapping.gcalId) : undefined;
       const isExplicitlyCancelledInGCal = gcalEvt ? Boolean(gcalEvt.isCancelled) : false;
 
-      // Case A: Task deleted or completed in Notion -> Delete from Google Calendar
+      // Case A: Task completed in Notion (or page archived/deleted in Notion manually) -> Remove from Google Calendar
       if (mapping.notionId && (!notionTaskExists || notionTaskCompleted)) {
-        const isNotionPageArchived = !notionTaskExists ? await verifyNotionPageArchived(mapping.notionId) : false;
+        if (!mapping.isCompleted || (mapping.gcalId && gcalEventIds.has(mapping.gcalId))) {
+          const isNotionPageArchived = !notionTaskExists ? await verifyNotionPageArchived(mapping.notionId) : false;
 
-        if (isNotionPageArchived || notionTaskCompleted) {
-          if (mapping.gcalId && gcalEventIds.has(mapping.gcalId)) {
-            await deleteGoogleCalendarEvent(mapping.gcalId);
-            addLog(`Deleted event "${mapping.title}" from Google Calendar (Notion task removed)`, 'success');
+          if (isNotionPageArchived || notionTaskCompleted) {
+            if (mapping.gcalId && gcalEventIds.has(mapping.gcalId)) {
+              await deleteGoogleCalendarEvent(mapping.gcalId);
+              addLog(`Removed event "${mapping.title}" from Google Calendar (task checked/completed in Notion)`, 'success');
+            }
+            if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
+            if (mapping.gcalId) deletedGCalIds.add(mapping.gcalId);
+
+            mapping.isCompleted = true;
+            mapping.gcalId = undefined;
+            upsertMapping(mapping);
+            continue;
           }
-          if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
-          if (mapping.gcalId) deletedGCalIds.add(mapping.gcalId);
-
-          mapping.isCompleted = true;
-          mapping.gcalId = undefined;
-          upsertMapping(mapping);
-          continue;
         }
       }
 
-      // Case B: Event deleted/cancelled in Google Calendar -> Archive/delete in Notion
-      if (mapping.gcalId && isExplicitlyCancelledInGCal) {
+      // Case B: Event deleted/cancelled in Google Calendar -> Mark Notion task as CHECKED (Do NOT archive Notion page!)
+      if (mapping.gcalId && isExplicitlyCancelledInGCal && !mapping.isCompleted) {
         if (mapping.notionId && notionTaskExists) {
-          await deleteNotionTaskPage(mapping.notionId);
-          addLog(`Archived task "${mapping.title}" in Notion (deleted from Google Calendar)`, 'success');
+          await updateNotionTask(mapping.notionId, { isCompleted: true });
+          addLog(`Checked task "${mapping.title}" in Notion (deleted from Google Calendar)`, 'success');
         }
         if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
         if (mapping.gcalId) deletedGCalIds.add(mapping.gcalId);
 
         mapping.isCompleted = true;
-        mapping.notionId = undefined;
+        mapping.gcalId = undefined;
         upsertMapping(mapping);
         continue;
       }
     }
 
     // =========================================================================
-    // 3. NOTION TASKS -> GOOGLE CALENDAR (Strict Single Creation Per Title)
+    // 3. NOTION TASKS -> GOOGLE CALENDAR (Strict Single Creation Per Title & Resync Unchecked)
     // =========================================================================
     const createdGCalTitlesInRun = new Set<string>();
     const modifiedInRun = new Set<string>();
 
-    for (const nTask of uncheckedNotionTasks) {
+    for (const nTask of allNotionTasks) {
       const normalizedTitle = nTask.title.trim().toLowerCase();
       const cleanTitleKey = normalizedTitle.replace(/\s+/g, ' ');
 
@@ -129,7 +129,22 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);
       const descriptionText = buildDescription(nTask.notes, nTask.url, nTask.notionPageUrl);
 
-      if (mapping && mapping.isCompleted) {
+      // Handle Resync if user UNCHECKED a task in Notion
+      if (mapping && mapping.isCompleted && !nTask.isCompleted) {
+        mapping.isCompleted = false;
+        const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
+        if (gcalId) {
+          mapping.gcalId = gcalId;
+          mapping.dueDate = nTask.dueDate;
+          mapping.description = descriptionText;
+          mapping.lastUpdated = new Date().toISOString();
+          upsertMapping(mapping);
+          addLog(`Resynced unchecked task "${nTask.title}" back to Google Calendar!`, 'success');
+        }
+        continue;
+      }
+
+      if (nTask.isCompleted) {
         continue;
       }
 

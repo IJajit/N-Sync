@@ -89,21 +89,41 @@ function parseNotionPage(page: any): NotionTaskItem | null {
 
   if (!title) return null;
 
-  // Check for checkbox / status completion
+  // Check for checkbox / status completion (prefer 'check' property name if present)
   let isCompleted = false;
   if (page.properties) {
+    // First look for exact property named 'check' or 'Check'
     for (const key of Object.keys(page.properties)) {
-      const prop = page.properties[key];
-      if (prop?.type === 'checkbox') {
-        if (Boolean(prop.checkbox)) {
-          isCompleted = true;
+      if (key.toLowerCase() === 'check') {
+        const prop = page.properties[key];
+        if (prop?.type === 'checkbox') {
+          isCompleted = Boolean(prop.checkbox);
+          break;
+        } else if (prop?.type === 'status') {
+          const statusName = prop.status?.name?.toLowerCase() || '';
+          if (statusName === 'done' || statusName === 'completed' || statusName.includes('done')) {
+            isCompleted = true;
+          }
           break;
         }
-      } else if (prop?.type === 'status') {
-        const statusName = prop.status?.name?.toLowerCase() || '';
-        if (statusName === 'done' || statusName === 'completed' || statusName.includes('done')) {
-          isCompleted = true;
-          break;
+      }
+    }
+
+    // Fallback to any checkbox or status property if 'check' was not found
+    if (!isCompleted) {
+      for (const key of Object.keys(page.properties)) {
+        const prop = page.properties[key];
+        if (prop?.type === 'checkbox') {
+          if (Boolean(prop.checkbox)) {
+            isCompleted = true;
+            break;
+          }
+        } else if (prop?.type === 'status') {
+          const statusName = prop.status?.name?.toLowerCase() || '';
+          if (statusName === 'done' || statusName === 'completed' || statusName.includes('done')) {
+            isCompleted = true;
+            break;
+          }
         }
       }
     }
@@ -227,7 +247,7 @@ export async function createNotionTask(
           },
         ],
       },
-      '': {
+      check: {
         checkbox: isCompleted,
       },
     };
@@ -326,17 +346,33 @@ export async function updateNotionTask(
     }
 
     if (updates.isCompleted !== undefined && page.properties) {
-      for (const key of Object.keys(page.properties)) {
-        const prop = page.properties[key];
+      // Look for explicit property named 'check' or 'Check' first
+      let checkPropKey: string | undefined = Object.keys(page.properties).find((k) => k.toLowerCase() === 'check');
+
+      if (checkPropKey) {
+        const prop = page.properties[checkPropKey];
         if (prop?.type === 'checkbox') {
-          properties[key] = { checkbox: updates.isCompleted };
+          properties[checkPropKey] = { checkbox: updates.isCompleted };
         } else if (prop?.type === 'status') {
-          // Select 'Done' or option containing 'done'
           const options = prop.status?.options || [];
           const doneOpt = options.find((opt: any) => opt.name.toLowerCase().includes('done') || opt.name.toLowerCase().includes('complete'));
-          properties[key] = {
-            status: { name: doneOpt ? doneOpt.name : (updates.isCompleted ? 'Done' : 'Not started') },
+          properties[checkPropKey] = {
+            status: { name: updates.isCompleted ? (doneOpt ? doneOpt.name : 'Done') : 'Not started' },
           };
+        }
+      } else {
+        // Fallback to any checkbox or status property
+        for (const key of Object.keys(page.properties)) {
+          const prop = page.properties[key];
+          if (prop?.type === 'checkbox') {
+            properties[key] = { checkbox: updates.isCompleted };
+          } else if (prop?.type === 'status') {
+            const options = prop.status?.options || [];
+            const doneOpt = options.find((opt: any) => opt.name.toLowerCase().includes('done') || opt.name.toLowerCase().includes('complete'));
+            properties[key] = {
+              status: { name: doneOpt ? doneOpt.name : (updates.isCompleted ? 'Done' : 'Not started') },
+            };
+          }
         }
       }
     }
