@@ -262,132 +262,108 @@ export async function createNotionTask(
   if (!NOTION_TOKEN) return null;
 
   try {
-    // 1. Discover exact property keys from the Notion database
-    let titlePropKey = 'Name';
-    let checkPropKey: string | undefined = undefined;
-    let datePropKey: string | undefined = undefined;
-    let notesPropKey: string | undefined = undefined;
+    let dbProperties: Record<string, any> = {};
 
     try {
       const db: any = await notion.databases.retrieve({ database_id: NOTION_TASKS_DB_ID });
       if (db.properties) {
-        for (const key of Object.keys(db.properties)) {
-          const prop = db.properties[key];
-          if (prop?.type === 'title') {
-            titlePropKey = key;
-          } else if (key.toLowerCase() === 'check') {
-            checkPropKey = key;
-          } else if (prop?.type === 'checkbox' && !checkPropKey) {
-            checkPropKey = key;
-          } else if (prop?.type === 'date' && !datePropKey) {
-            datePropKey = key;
-          } else if ((key.toLowerCase().includes('note') || key.toLowerCase().includes('desc')) && prop?.type === 'rich_text') {
-            notesPropKey = key;
-          }
-        }
+        dbProperties = db.properties;
       }
     } catch (e) {
-      console.warn('Dynamic DB schema query failed, using title key discovery:', e);
+      console.warn('Database schema retrieval warning:', e);
     }
 
-    // 2. Create Notion page with Title only first (guaranteed to succeed)
-    let newPage: any = null;
-    const possibleTitleKeys = Array.from(new Set([titlePropKey, 'Name', 'Task', 'Title', 'Task Name', 'task name']));
+    // Identify property names by type
+    let titleKey = 'Name';
+    let checkKey: string | null = null;
+    let dateKey: string | null = null;
+    let notesKey: string | null = null;
 
-    for (const tKey of possibleTitleKeys) {
-      try {
-        newPage = await notion.pages.create({
-          parent: { database_id: NOTION_TASKS_DB_ID },
-          properties: {
-            [tKey]: {
-              title: [{ text: { content: title } }],
-            },
-          },
-        });
-        if (newPage?.id) break;
-      } catch (err) {
-        // Try next title key option
+    for (const key of Object.keys(dbProperties)) {
+      const prop = dbProperties[key];
+      if (prop?.type === 'title') {
+        titleKey = key;
+      } else if (key.toLowerCase() === 'check') {
+        checkKey = key;
+      } else if (prop?.type === 'checkbox' && !checkKey) {
+        checkKey = key;
+      } else if (prop?.type === 'date' && !dateKey) {
+        dateKey = key;
+      } else if (prop?.type === 'rich_text' && !notesKey) {
+        notesKey = key;
       }
+    }
+
+    const titleKeysToTry = Array.from(new Set([titleKey, 'Name', 'Task', 'Title', 'Task Name'])).filter(Boolean);
+    const dateKeysToTry = Array.from(new Set([dateKey, 'Deadline', 'Date', 'Due Date', 'Due'])).filter(Boolean);
+    const checkKeysToTry = Array.from(new Set([checkKey, 'check', 'Check', 'Done', 'Completed'])).filter(Boolean);
+    const notesKeysToTry = Array.from(new Set([notesKey, 'Notes', 'Description', 'Notes/Description', 'Details'])).filter(Boolean);
+
+    const cleanDate = dueDate ? (dueDate.includes('T') ? dueDate.split('T')[0] : dueDate) : undefined;
+    const rawNotes = notes ? cleanGCalDescription(notes) : undefined;
+
+    let newPage: any = null;
+
+    // Try creating page with all properties matched to schema
+    for (const tKey of titleKeysToTry) {
+      for (const dKey of (cleanDate ? dateKeysToTry : [null])) {
+        for (const cKey of checkKeysToTry) {
+          for (const nKey of (rawNotes ? notesKeysToTry : [null])) {
+            const props: any = {
+              [tKey]: {
+                title: [{ text: { content: title } }],
+              },
+            };
+
+            if (cKey) {
+              props[cKey] = { checkbox: isCompleted };
+            }
+
+            if (cleanDate && dKey) {
+              props[dKey] = { date: { start: cleanDate } };
+            }
+
+            if (rawNotes && nKey) {
+              props[nKey] = { rich_text: [{ text: { content: rawNotes.substring(0, 2000) } }] };
+            }
+
+            try {
+              newPage = await notion.pages.create({
+                parent: { database_id: NOTION_TASKS_DB_ID },
+                properties: props,
+              });
+              if (newPage?.id) break;
+            } catch (err) {
+              // Try next property combination fallback
+            }
+          }
+          if (newPage?.id) break;
+        }
+        if (newPage?.id) break;
+      }
+      if (newPage?.id) break;
     }
 
     if (!newPage?.id) {
-      console.error(`Failed to create page in Notion DB for title "${title}"`);
-      return null;
-    }
-
-    const pageId = newPage.id;
-
-    // 3. Update extra properties (check, date, notes) safely
-    try {
-      const updateProps: any = {};
-
-      if (checkPropKey) {
-        updateProps[checkPropKey] = { checkbox: isCompleted };
-      } else {
-        updateProps['check'] = { checkbox: isCompleted };
-      }
-
-      if (dueDate) {
-        const cleanDate = dueDate.includes('T') ? dueDate.split('T')[0] : dueDate;
-        const possibleDateKeys = Array.from(new Set([datePropKey, 'Deadline', 'Date', 'Due Date', 'Due', 'deadline', 'date'])).filter(Boolean) as string[];
-        
-        let dateUpdated = false;
-        for (const dKey of possibleDateKeys) {
-          try {
-            await notion.pages.update({
-              page_id: pageId,
-              properties: {
-                [dKey]: { date: { start: cleanDate } },
-              },
-            });
-            dateUpdated = true;
-            break;
-          } catch (e) {
-            // Try next date column key
-          }
+      // Fallback: Create with title only if multi-property creation encountered schema errors
+      for (const tKey of titleKeysToTry) {
+        try {
+          newPage = await notion.pages.create({
+            parent: { database_id: NOTION_TASKS_DB_ID },
+            properties: {
+              [tKey]: { title: [{ text: { content: title } }] },
+            },
+          });
+          if (newPage?.id) break;
+        } catch (e) {
+          // Continue fallback
         }
       }
-
-      const extraProps: any = {};
-      if (checkPropKey) {
-        extraProps[checkPropKey] = { checkbox: isCompleted };
-      } else {
-        extraProps['check'] = { checkbox: isCompleted };
-      }
-
-      if (notes) {
-        const cleaned = cleanGCalDescription(notes);
-        if (cleaned) {
-          const possibleNoteKeys = Array.from(new Set([notesPropKey, 'Notes', 'Description', 'Notes/Description', 'Details', 'Body', 'notes', 'description'])).filter(Boolean) as string[];
-          const noteContent = cleaned.substring(0, 2000);
-
-          for (const nKey of possibleNoteKeys) {
-            try {
-              await notion.pages.update({
-                page_id: pageId,
-                properties: {
-                  [nKey]: { rich_text: [{ text: { content: noteContent } }] },
-                },
-              });
-              break;
-            } catch (e) {
-              // Try next notes column title
-            }
-          }
-        }
-      }
-
-      await notion.pages.update({
-        page_id: pageId,
-        properties: extraProps,
-      });
-    } catch (updateErr) {
-      console.warn(`Created Notion page ${pageId} but extra properties failed to update:`, updateErr);
     }
 
-    return pageId;
+    return newPage?.id || null;
   } catch (error) {
-    console.error('Error in createNotionTask:', error);
+    console.error('Error creating Notion task:', error);
     return null;
   }
 }
