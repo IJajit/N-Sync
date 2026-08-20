@@ -328,22 +328,44 @@ export async function createNotionTask(
       }
 
       if (dueDate) {
-        const key = datePropKey || 'Deadline';
         const cleanDate = dueDate.includes('T') ? dueDate.split('T')[0] : dueDate;
-        updateProps[key] = { date: { start: cleanDate } };
+        const possibleDateKeys = Array.from(new Set([datePropKey, 'Deadline', 'Date', 'Due Date', 'Due', 'deadline', 'date'])).filter(Boolean) as string[];
+        
+        let dateUpdated = false;
+        for (const dKey of possibleDateKeys) {
+          try {
+            await notion.pages.update({
+              page_id: pageId,
+              properties: {
+                [dKey]: { date: { start: cleanDate } },
+              },
+            });
+            dateUpdated = true;
+            break;
+          } catch (e) {
+            // Try next date column key
+          }
+        }
+      }
+
+      const extraProps: any = {};
+      if (checkPropKey) {
+        extraProps[checkPropKey] = { checkbox: isCompleted };
+      } else {
+        extraProps['check'] = { checkbox: isCompleted };
       }
 
       if (notes) {
         const cleaned = cleanGCalDescription(notes);
         if (cleaned) {
           const key = notesPropKey || 'Notes';
-          updateProps[key] = { rich_text: [{ text: { content: cleaned.substring(0, 2000) } }] };
+          extraProps[key] = { rich_text: [{ text: { content: cleaned.substring(0, 2000) } }] };
         }
       }
 
       await notion.pages.update({
         page_id: pageId,
-        properties: updateProps,
+        properties: extraProps,
       });
     } catch (updateErr) {
       console.warn(`Created Notion page ${pageId} but extra properties failed to update:`, updateErr);
