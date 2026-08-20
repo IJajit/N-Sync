@@ -267,49 +267,63 @@ export async function createNotionTask(
       console.warn('Could not retrieve DB schema dynamically, using standard defaults:', e);
     }
 
-    const properties: any = {
-      [titlePropKey]: {
-        title: [
-          {
-            text: { content: title },
-          },
-        ],
-      },
-    };
-
-    if (checkPropKey) {
-      properties[checkPropKey] = { checkbox: isCompleted };
-    } else {
-      properties['check'] = { checkbox: isCompleted };
-    }
-
-    if (dueDate) {
-      const key = datePropKey || 'Deadline';
-      const cleanDate = dueDate.includes('T') ? dueDate.split('T')[0] : dueDate;
-      properties[key] = {
-        date: { start: cleanDate },
+    const buildProperties = (primaryTitleKey: string) => {
+      const props: any = {
+        [primaryTitleKey]: {
+          title: [{ text: { content: title } }],
+        },
       };
-    }
 
-    if (notes) {
-      const cleanedNotes = cleanGCalDescription(notes);
-      if (cleanedNotes) {
-        const key = notesPropKey || 'Notes';
-        const content = cleanedNotes.substring(0, 2000);
-        properties[key] = {
-          rich_text: [
-            {
-              text: { content },
-            },
-          ],
+      if (checkPropKey) {
+        props[checkPropKey] = { checkbox: isCompleted };
+      } else {
+        props['check'] = { checkbox: isCompleted };
+      }
+
+      if (dueDate) {
+        const key = datePropKey || 'Deadline';
+        const cleanDate = dueDate.includes('T') ? dueDate.split('T')[0] : dueDate;
+        props[key] = {
+          date: { start: cleanDate },
         };
       }
-    }
 
-    const response = await notion.pages.create({
-      parent: { database_id: NOTION_TASKS_DB_ID },
-      properties,
-    });
+      if (notes) {
+        const cleanedNotes = cleanGCalDescription(notes);
+        if (cleanedNotes) {
+          const key = notesPropKey || 'Notes';
+          const content = cleanedNotes.substring(0, 2000);
+          props[key] = {
+            rich_text: [{ text: { content } }],
+          };
+        }
+      }
+
+      return props;
+    };
+
+    let response: any = null;
+    try {
+      response = await notion.pages.create({
+        parent: { database_id: NOTION_TASKS_DB_ID },
+        properties: buildProperties(titlePropKey),
+      });
+    } catch (createErr: any) {
+      // Fallback try common title property names 'Title' / 'Task' / 'Name'
+      const fallbackTitleKeys = ['Name', 'Task', 'Title', 'task name', 'Task Name'].filter((k) => k !== titlePropKey);
+      for (const altKey of fallbackTitleKeys) {
+        try {
+          response = await notion.pages.create({
+            parent: { database_id: NOTION_TASKS_DB_ID },
+            properties: buildProperties(altKey),
+          });
+          if (response?.id) break;
+        } catch (e) {
+          // Continue to next alternative title key
+        }
+      }
+      if (!response?.id) throw createErr;
+    }
 
     return response.id;
   } catch (error) {
