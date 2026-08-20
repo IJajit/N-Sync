@@ -1,4 +1,4 @@
-import { fetchNotionTasks, updateNotionTask, createNotionTask, verifyNotionPageArchived } from './notion';
+import { fetchNotionTasks, updateNotionTask, createNotionTask, verifyNotionPageArchived, cleanGCalDescription } from './notion';
 import {
   fetchGoogleCalendarEvents,
   createGoogleCalendarEvent,
@@ -48,7 +48,8 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
     const buildDescription = (notes?: string, url?: string, notionPageUrl?: string) => {
       const parts: string[] = [];
-      if (notes) parts.push(`Notes:\n${notes}`);
+      const cleanNotes = cleanGCalDescription(notes);
+      if (cleanNotes) parts.push(cleanNotes);
       if (url) parts.push(`Website: ${url}`);
       if (notionPageUrl) parts.push(`Notion Task: ${notionPageUrl}`);
       return parts.length > 0 ? parts.join('\n\n') : undefined;

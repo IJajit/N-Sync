@@ -242,10 +242,13 @@ export function cleanGCalDescription(rawDesc?: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'");
 
-  // Remove auto-generated "Notion Task: https://app.notion.com/..." lines from notes
+  // Remove auto-generated "Notion Task: ..." and repeated "Notes:" lines
   text = text
     .split('\n')
-    .filter((line) => !line.trim().startsWith('Notion Task: https://app.notion.com/'))
+    .filter((line) => {
+      const trimmed = line.trim();
+      return !trimmed.startsWith('Notion Task: https://') && trimmed !== 'Notes:';
+    })
     .join('\n')
     .trim();
 
