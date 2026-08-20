@@ -10,15 +10,32 @@ export default function SyncDashboard() {
   const [autoSync, setAutoSync] = useState(true);
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
 
+  const FIVE_MINUTES_MS = 5 * 60 * 1000;
+
   const triggerSync = async () => {
     setSyncing(true);
     try {
       const res = await fetch('/api/sync', { method: 'POST' });
       const data = await res.json();
-      if (data.logs) {
-        setLogs(data.logs);
-      } else {
-        setLogs([]);
+      if (data.logs && Array.isArray(data.logs)) {
+        setLogs((prevLogs) => {
+          const now = Date.now();
+          const cutoff = now - FIVE_MINUTES_MS;
+          // Combine existing logs with newly fetched logs
+          const combined = [...prevLogs, ...data.logs];
+          // Deduplicate logs by unique timestamp + message key
+          const uniqueMap = new Map();
+          for (const item of combined) {
+            const time = new Date(item.timestamp).getTime();
+            if (time >= cutoff) {
+              uniqueMap.set(`${item.timestamp}-${item.message}`, item);
+            }
+          }
+          const filtered = Array.from(uniqueMap.values());
+          // Sort chronologically (newest at bottom)
+          filtered.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+          return filtered;
+        });
       }
       if (data.mappings) {
         setMappings(data.mappings);
@@ -30,6 +47,19 @@ export default function SyncDashboard() {
       setSyncing(false);
     }
   };
+
+  // Periodically clear/prune logs older than 5 minutes
+  useEffect(() => {
+    const pruneInterval = setInterval(() => {
+      setLogs((prevLogs) => {
+        const cutoff = Date.now() - FIVE_MINUTES_MS;
+        const filtered = prevLogs.filter((log) => new Date(log.timestamp).getTime() >= cutoff);
+        return filtered.length === prevLogs.length ? prevLogs : filtered;
+      });
+    }, 5000);
+
+    return () => clearInterval(pruneInterval);
+  }, []);
 
   useEffect(() => {
     fetch('/api/sync')
@@ -277,13 +307,15 @@ export default function SyncDashboard() {
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                   Realtime log stream
                 </span>
-                <span className="text-[10px] text-neutral-500">{logs.length} Logs</span>
+                <span className="text-[10px] text-emerald-400/90 font-mono bg-emerald-950/40 border border-emerald-900/50 px-2 py-0.5 rounded">
+                  {logs.length} Logs (Past 5m)
+                </span>
               </div>
 
               {/* Terminal Logs Below */}
               <div className="space-y-3 pt-2">
                 <div className="text-[10px] font-mono tracking-widest text-neutral-500 border-b border-neutral-900 pb-1.5 flex justify-between">
-                  <span>Activity stream</span>
+                  <span>Activity stream (5-min window)</span>
                   <span>Live</span>
                 </div>
 

@@ -233,21 +233,24 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         createdNotionTitlesInRun.add(normalizedSummary);
         const titleChanged = evt.summary !== mapping.title;
         const dateChanged = evt.start !== mapping.dueDate;
+        const descriptionChanged = evt.description !== undefined && evt.description !== mapping.description;
 
-        if (titleChanged || dateChanged) {
+        if (titleChanged || dateChanged || descriptionChanged) {
           if (mapping.notionId) {
             await updateNotionTask(mapping.notionId, {
               title: evt.summary,
               dueDate: evt.start,
+              notes: evt.description,
             });
           }
 
           mapping.title = evt.summary;
           mapping.dueDate = evt.start;
+          mapping.description = evt.description;
           mapping.gcalId = evt.id;
           mapping.lastUpdated = new Date().toISOString();
           upsertMapping(mapping);
-          addLog(`Updated Notion task for GCal event "${evt.summary}"`, 'success');
+          addLog(`Updated Notion task details for GCal event "${evt.summary}"`, 'success');
         } else if (!mapping.gcalId) {
           mapping.gcalId = evt.id;
           upsertMapping(mapping);
@@ -259,12 +262,18 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
         if (existingNotionTask) {
           createdNotionTitlesInRun.add(normalizedSummary);
+          if (evt.description && evt.description !== existingNotionTask.notes) {
+            await updateNotionTask(existingNotionTask.id, {
+              notes: evt.description,
+            });
+          }
           upsertMapping({
             id: existingNotionTask.id,
             notionId: existingNotionTask.id,
             gcalId: evt.id,
             title: evt.summary,
             dueDate: evt.start,
+            description: evt.description || existingNotionTask.notes,
             isCompleted: existingNotionTask.isCompleted,
             lastUpdated: new Date().toISOString(),
             sourcePlatform: 'gcal',
@@ -283,6 +292,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
               title: evt.summary,
               isCompleted: false,
               dueDate: evt.start,
+              notes: evt.description,
               lastEditedTime: new Date().toISOString(),
             });
             upsertMapping({
@@ -291,6 +301,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
               gcalId: evt.id,
               title: evt.summary,
               dueDate: evt.start,
+              description: evt.description,
               isCompleted: false,
               lastUpdated: new Date().toISOString(),
               sourcePlatform: 'gcal',

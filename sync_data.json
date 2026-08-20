@@ -642,5 +642,16 @@
     "isCompleted": true,
     "lastUpdated": "2026-08-18T10:20:34.757Z",
     "sourcePlatform": "notion"
+  },
+  {
+    "id": "3c1e6d69-8017-8104-9582-d04324c1d2db",
+    "notionId": "3c1e6d69-8017-8104-9582-d04324c1d2db",
+    "gcalId": "6th3ed9mcdh62bb569hj8b9kc8oj0bb264sjebb3ckqm8db5c8rmcd1m74",
+    "title": "Welcome week",
+    "dueDate": "2026-09-01",
+    "description": "Notes:\nNotion Task: <a href=\"https://app.notion.com/p/Welcome-week-3c1e6d69801781049582d04324c1d2db\" target=\"_blank\">https://app.notion.com/p/Welcome-week-3c1e6d69801781049582d04324c1d2db</a><br><br><a href=\"https://www.polimi.it/en/prospective-students/how-to-apply/welcome-activities/welcome-week/master-of-science-degree-seeking#c35265\">https://www.polimi.it/en/prospective-students/how-to-apply/welcome-activities/welcome-week/master-of-science-degree-seeking#c35265</a>\n\nNotion Task: https://app.notion.com/p/Welcome-week-3c1e6d69801781049582d04324c1d2db",
+    "isCompleted": false,
+    "lastUpdated": "2026-08-20T06:43:38.152Z",
+    "sourcePlatform": "notion"
   }
 ]

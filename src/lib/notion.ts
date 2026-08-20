@@ -169,6 +169,46 @@ function parseNotionPage(page: any): NotionTaskItem | null {
   };
 }
 
+export function cleanGCalDescription(rawDesc?: string): string {
+  if (!rawDesc) return '';
+
+  let text = rawDesc;
+
+  // Replace HTML linebreaks
+  text = text.replace(/<br\s*\/?>/gi, '\n');
+  text = text.replace(/<\/p>/gi, '\n');
+  text = text.replace(/<p>/gi, '');
+
+  // Replace anchor links
+  text = text.replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi, (_, href, content) => {
+    const cleanContent = content.replace(/<[^>]+>/g, '').trim();
+    if (!cleanContent || cleanContent === href) {
+      return href;
+    }
+    return `${cleanContent} (${href})`;
+  });
+
+  // Strip remaining HTML tags
+  text = text.replace(/<[^>]+>/g, '');
+
+  // Unescape HTML entities
+  text = text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+
+  // Remove auto-generated "Notion Task: https://app.notion.com/..." lines from notes
+  text = text
+    .split('\n')
+    .filter((line) => !line.trim().startsWith('Notion Task: https://app.notion.com/'))
+    .join('\n')
+    .trim();
+
+  return text;
+}
+
 export async function createNotionTask(
   title: string,
   dueDate?: string,
@@ -196,6 +236,25 @@ export async function createNotionTask(
       properties.Deadline = {
         date: { start: dueDate },
       };
+    }
+
+    if (notes) {
+      const cleanedNotes = cleanGCalDescription(notes);
+      if (cleanedNotes) {
+        const content = cleanedNotes.substring(0, 2000);
+        properties.Notes = {
+          rich_text: [
+            {
+              text: { content },
+            },
+          ],
+        };
+
+        const urlMatch = cleanedNotes.match(/https?:\/\/[^\s]+/i);
+        if (urlMatch) {
+          properties.Website = { url: urlMatch[0] };
+        }
+      }
     }
 
     const response = await notion.pages.create({
@@ -245,7 +304,7 @@ export async function deleteNotionTaskPage(pageId: string): Promise<boolean> {
 
 export async function updateNotionTask(
   pageId: string,
-  updates: { title?: string; dueDate?: string; isCompleted?: boolean }
+  updates: { title?: string; dueDate?: string; isCompleted?: boolean; notes?: string }
 ): Promise<boolean> {
   const notion = getNotionClient();
   if (!NOTION_TOKEN) return false;
@@ -288,6 +347,43 @@ export async function updateNotionTask(
         if (prop?.type === 'date') {
           properties[key] = updates.dueDate ? { date: { start: updates.dueDate } } : { date: null };
           break;
+        }
+      }
+    }
+
+    if (updates.notes !== undefined && page.properties) {
+      const cleanedNotes = cleanGCalDescription(updates.notes);
+
+      let notesKey: string | undefined = undefined;
+      let websiteKey: string | undefined = undefined;
+
+      for (const key of Object.keys(page.properties)) {
+        const prop = page.properties[key];
+        const lowerKey = key.toLowerCase();
+        if (lowerKey.includes('note') || lowerKey.includes('description') || lowerKey.includes('comment')) {
+          if (prop?.type === 'rich_text') {
+            notesKey = key;
+          }
+        }
+        if (prop?.type === 'url') {
+          websiteKey = key;
+        }
+      }
+      if (!notesKey && page.properties['Notes']?.type === 'rich_text') {
+        notesKey = 'Notes';
+      }
+
+      if (notesKey) {
+        const content = cleanedNotes.substring(0, 2000);
+        properties[notesKey] = {
+          rich_text: content ? [{ text: { content } }] : [],
+        };
+      }
+
+      if (websiteKey && cleanedNotes) {
+        const urlMatch = cleanedNotes.match(/https?:\/\/[^\s]+/i);
+        if (urlMatch) {
+          properties[websiteKey] = { url: urlMatch[0] };
         }
       }
     }
