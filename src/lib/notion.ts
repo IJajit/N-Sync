@@ -262,7 +262,7 @@ export async function createNotionTask(
   if (!NOTION_TOKEN) return null;
 
   try {
-    // Dynamically retrieve database schema to map properties correctly
+    // 1. Discover exact property keys from the Notion database
     let titlePropKey = 'Name';
     let checkPropKey: string | undefined = undefined;
     let datePropKey: string | undefined = undefined;
@@ -287,70 +287,71 @@ export async function createNotionTask(
         }
       }
     } catch (e) {
-      console.warn('Could not retrieve DB schema dynamically, using standard defaults:', e);
+      console.warn('Dynamic DB schema query failed, using title key discovery:', e);
     }
 
-    const buildProperties = (primaryTitleKey: string) => {
-      const props: any = {
-        [primaryTitleKey]: {
-          title: [{ text: { content: title } }],
-        },
-      };
+    // 2. Create Notion page with Title only first (guaranteed to succeed)
+    let newPage: any = null;
+    const possibleTitleKeys = Array.from(new Set([titlePropKey, 'Name', 'Task', 'Title', 'Task Name', 'task name']));
+
+    for (const tKey of possibleTitleKeys) {
+      try {
+        newPage = await notion.pages.create({
+          parent: { database_id: NOTION_TASKS_DB_ID },
+          properties: {
+            [tKey]: {
+              title: [{ text: { content: title } }],
+            },
+          },
+        });
+        if (newPage?.id) break;
+      } catch (err) {
+        // Try next title key option
+      }
+    }
+
+    if (!newPage?.id) {
+      console.error(`Failed to create page in Notion DB for title "${title}"`);
+      return null;
+    }
+
+    const pageId = newPage.id;
+
+    // 3. Update extra properties (check, date, notes) safely
+    try {
+      const updateProps: any = {};
 
       if (checkPropKey) {
-        props[checkPropKey] = { checkbox: isCompleted };
+        updateProps[checkPropKey] = { checkbox: isCompleted };
       } else {
-        props['check'] = { checkbox: isCompleted };
+        updateProps['check'] = { checkbox: isCompleted };
       }
 
       if (dueDate) {
         const key = datePropKey || 'Deadline';
         const cleanDate = dueDate.includes('T') ? dueDate.split('T')[0] : dueDate;
-        props[key] = {
-          date: { start: cleanDate },
-        };
+        updateProps[key] = { date: { start: cleanDate } };
       }
 
       if (notes) {
-        const cleanedNotes = cleanGCalDescription(notes);
-        if (cleanedNotes) {
+        const cleaned = cleanGCalDescription(notes);
+        if (cleaned) {
           const key = notesPropKey || 'Notes';
-          const content = cleanedNotes.substring(0, 2000);
-          props[key] = {
-            rich_text: [{ text: { content } }],
-          };
+          updateProps[key] = { rich_text: [{ text: { content: cleaned.substring(0, 2000) } }] };
         }
       }
 
-      return props;
-    };
-
-    let response: any = null;
-    try {
-      response = await notion.pages.create({
-        parent: { database_id: NOTION_TASKS_DB_ID },
-        properties: buildProperties(titlePropKey),
+      await notion.pages.update({
+        page_id: pageId,
+        properties: updateProps,
       });
-    } catch (createErr: any) {
-      // Fallback try common title property names 'Title' / 'Task' / 'Name'
-      const fallbackTitleKeys = ['Name', 'Task', 'Title', 'task name', 'Task Name'].filter((k) => k !== titlePropKey);
-      for (const altKey of fallbackTitleKeys) {
-        try {
-          response = await notion.pages.create({
-            parent: { database_id: NOTION_TASKS_DB_ID },
-            properties: buildProperties(altKey),
-          });
-          if (response?.id) break;
-        } catch (e) {
-          // Continue to next alternative title key
-        }
-      }
-      if (!response?.id) throw createErr;
+    } catch (updateErr) {
+      console.warn(`Created Notion page ${pageId} but extra properties failed to update:`, updateErr);
     }
 
-    return response.id;
+    return pageId;
   } catch (error) {
-    console.error('Error creating Notion task:', error);
+    console.error('Error in createNotionTask:', error);
     return null;
   }
 }
