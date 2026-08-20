@@ -139,14 +139,15 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
     };
 
     if (dueDate) {
-      if (dueDate.includes('T')) {
+      if (dueDate.includes('T') && !dueDate.endsWith('T00:00:00.000Z')) {
         const startDate = new Date(dueDate);
         const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
         requestBody.start = { dateTime: startDate.toISOString() };
         requestBody.end = { dateTime: endDate.toISOString() };
       } else {
-        requestBody.start = { date: dueDate };
-        requestBody.end = { date: getExclusiveEndDate(dueDate) };
+        const dateOnly = dueDate.split('T')[0];
+        requestBody.start = { date: dateOnly };
+        requestBody.end = { date: getExclusiveEndDate(dateOnly) };
       }
     } else {
       const todayStr = new Date().toISOString().split('T')[0];
