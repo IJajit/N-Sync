@@ -9,6 +9,7 @@ export async function POST() {
 }
 
 export async function GET() {
+  const logs = await runTwoWaySync();
   const mappings = getMappings();
-  return NextResponse.json({ mappings });
+  return NextResponse.json({ success: true, logs, mappings });
 }
