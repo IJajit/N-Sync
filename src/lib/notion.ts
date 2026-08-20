@@ -28,7 +28,7 @@ export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
     let nextCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response: any = await notion.databases.query({
+      const response: any = await (notion.databases as any).query({
         database_id: NOTION_TASKS_DB_ID,
         page_size: 100,
         start_cursor: nextCursor,
