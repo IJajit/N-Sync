@@ -99,7 +99,8 @@ export default function SyncDashboard() {
         
         {/* Compact Header & Controls Bar (In-Line on Mobile & Desktop) */}
         <header className="flex flex-row items-center justify-between gap-4 border-b border-neutral-900 pb-4">
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-100 font-sans">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-neutral-100 font-sans flex items-center gap-3">
+            <img src="/icon.png" alt="App Icon" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain bg-white p-0.5 border border-neutral-800" />
             Calendar Sync
           </h1>
 
