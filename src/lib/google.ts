@@ -293,36 +293,45 @@ export async function fetchGoogleTasks(): Promise<GTaskItem[]> {
   if (!REFRESH_TOKEN) return [];
 
   const tasksApi = google.tasks({ version: 'v1', auth });
-  const tasklistId = await getToDoListId();
 
   try {
-    const response = await tasksApi.tasks.list({
-      tasklist: tasklistId,
-      showCompleted: true,
-      showHidden: true,
-      showDeleted: true,
-      maxResults: 100,
-    });
+    const tasklistsRes = await tasksApi.tasklists.list({ maxResults: 100 });
+    const lists = tasklistsRes.data.items || [];
 
     const items: GTaskItem[] = [];
-    for (const item of response.data.items || []) {
-      if (!item.id || !item.title) continue;
 
-      items.push({
-        id: item.id,
-        title: item.title,
-        notes: item.notes || undefined,
-        due: item.due || undefined,
-        status: (item.status as 'needsAction' | 'completed') || 'needsAction',
-        completed: item.completed || undefined,
-        isDeleted: Boolean(item.deleted),
-        updated: item.updated || undefined,
-      });
+    for (const list of lists) {
+      if (!list.id) continue;
+      try {
+        const response = await tasksApi.tasks.list({
+          tasklist: list.id,
+          showCompleted: true,
+          showHidden: true,
+          showDeleted: true,
+          maxResults: 100,
+        });
+
+        for (const item of response.data.items || []) {
+          if (!item.id || !item.title) continue;
+          items.push({
+            id: item.id,
+            title: item.title,
+            notes: item.notes || undefined,
+            due: item.due || undefined,
+            status: (item.status as 'needsAction' | 'completed') || 'needsAction',
+            completed: item.completed || undefined,
+            isDeleted: Boolean(item.deleted),
+            updated: item.updated || undefined,
+          });
+        }
+      } catch (e) {
+        // Continue scanning other tasklists
+      }
     }
 
     return items;
   } catch (error) {
-    console.error(`Error fetching Google Tasks from list ${tasklistId}:`, error);
+    console.error(`Error fetching Google Tasks across task lists:`, error);
     return [];
   }
 }
