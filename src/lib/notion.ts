@@ -239,41 +239,70 @@ export async function createNotionTask(
   if (!NOTION_TOKEN) return null;
 
   try {
+    // Dynamically retrieve database schema to map properties correctly
+    let titlePropKey = 'Name';
+    let checkPropKey: string | undefined = undefined;
+    let datePropKey: string | undefined = undefined;
+    let notesPropKey: string | undefined = undefined;
+
+    try {
+      const db: any = await notion.databases.retrieve({ database_id: NOTION_TASKS_DB_ID });
+      if (db.properties) {
+        for (const key of Object.keys(db.properties)) {
+          const prop = db.properties[key];
+          if (prop?.type === 'title') {
+            titlePropKey = key;
+          } else if (key.toLowerCase() === 'check') {
+            checkPropKey = key;
+          } else if (prop?.type === 'checkbox' && !checkPropKey) {
+            checkPropKey = key;
+          } else if (prop?.type === 'date' && !datePropKey) {
+            datePropKey = key;
+          } else if ((key.toLowerCase().includes('note') || key.toLowerCase().includes('desc')) && prop?.type === 'rich_text') {
+            notesPropKey = key;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Could not retrieve DB schema dynamically, using standard defaults:', e);
+    }
+
     const properties: any = {
-      Name: {
+      [titlePropKey]: {
         title: [
           {
             text: { content: title },
           },
         ],
       },
-      check: {
-        checkbox: isCompleted,
-      },
     };
 
+    if (checkPropKey) {
+      properties[checkPropKey] = { checkbox: isCompleted };
+    } else {
+      properties['check'] = { checkbox: isCompleted };
+    }
+
     if (dueDate) {
-      properties.Deadline = {
-        date: { start: dueDate },
+      const key = datePropKey || 'Deadline';
+      const cleanDate = dueDate.includes('T') ? dueDate.split('T')[0] : dueDate;
+      properties[key] = {
+        date: { start: cleanDate },
       };
     }
 
     if (notes) {
       const cleanedNotes = cleanGCalDescription(notes);
       if (cleanedNotes) {
+        const key = notesPropKey || 'Notes';
         const content = cleanedNotes.substring(0, 2000);
-        properties.Notes = {
+        properties[key] = {
           rich_text: [
             {
               text: { content },
             },
           ],
         };
-
-        const urlMatch = cleanedNotes.match(/https?:\/\/[^\s]+/i);
-        if (urlMatch) {
-          properties.Website = { url: urlMatch[0] };
-        }
       }
     }
 
