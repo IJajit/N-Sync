@@ -242,6 +242,14 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           sourcePlatform: 'gtask',
         });
         addLog(`Linked Google Task "${gtask.title}" with Notion & Google Calendar!`, 'success');
+      } else if (!mapping.notionId) {
+        const existingNotionTask = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+        const notionId = existingNotionTask ? existingNotionTask.id : await createNotionTask(gtask.title, gtask.due, gtask.status === 'completed', gtask.notes);
+        if (notionId) {
+          mapping.notionId = notionId;
+          upsertMapping(mapping);
+          addLog(`Created Notion task for Google Task "${gtask.title}"`, 'success');
+        }
       }
     }
   } catch (error: any) {
