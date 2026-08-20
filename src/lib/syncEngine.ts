@@ -31,7 +31,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
   };
 
   try {
-    // 1. Fetch data from Notion Tasks, Google Calendar, and Google Tasks ("To Do List")
+    // 1. Fetch current items from Notion Tasks, Google Calendar, and Google Tasks ("To Do List")
     const [allNotionTasks, gcalEvents, gtaskItems] = await Promise.all([
       fetchNotionTasks(),
       fetchGoogleCalendarEvents(),
@@ -55,7 +55,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     };
 
     // =========================================================================
-    // 1.5 AUTOMATED GOOGLE CALENDAR & TASKS DEDUPLICATION PASS
+    // 1.5 AUTOMATED DEDUPLICATION PASS
     // =========================================================================
     const activeGCalEventsByTitle = new Map<string, GCalEventItem[]>();
     for (const evt of activeGCalEvents) {
@@ -96,7 +96,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // =========================================================================
-    // 2. SAFE 3-WAY DELETION & COMPLETION RESOLUTION
+    // 2. COMPLETION & DELETION CASCADE WORKFLOW
     // =========================================================================
     const deletedNotionIds = new Set<string>();
     const deletedGCalIds = new Set<string>();
@@ -113,26 +113,26 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       const gtaskItem = mapping.gtaskId ? gtaskItems.find((t) => t.id === mapping.gtaskId) : undefined;
       const gtaskCompleted = gtaskItem ? gtaskItem.status === 'completed' : false;
 
-      // Detect if item completed anywhere in the 3 platforms:
       const newlyCompletedInNotion = notionTaskCompleted && !mapping.isCompleted;
       const newlyCompletedInGTask = gtaskCompleted && !mapping.isCompleted;
       const deletedFromGCal = isExplicitlyCancelledInGCal && !mapping.isCompleted;
 
+      // Workflow: Checking in Notion or GTasks -> delete GCal event & check in remaining services
+      // Workflow: Deleting GCal event -> check Notion task & tick mark GTask
       if (newlyCompletedInNotion || newlyCompletedInGTask || deletedFromGCal) {
-        // Mark as completed across Notion & Google Tasks, and remove from Google Calendar
         if (mapping.gcalId && gcalEventIds.has(mapping.gcalId)) {
           await deleteGoogleCalendarEvent(mapping.gcalId);
-          addLog(`Removed event "${mapping.title}" from Google Calendar`, 'success');
+          addLog(`Deleted event "${mapping.title}" from Google Calendar`, 'success');
         }
 
         if (mapping.notionId && notionTaskExists && !notionTaskCompleted) {
           await updateNotionTask(mapping.notionId, { isCompleted: true });
-          addLog(`Checked task "${mapping.title}" in Notion`, 'success');
+          addLog(`Ticked task "${mapping.title}" in Notion database`, 'success');
         }
 
         if (mapping.gtaskId && gtaskItem && gtaskItem.status !== 'completed') {
           await updateGoogleTask(mapping.gtaskId, { isCompleted: true });
-          addLog(`Completed task "${mapping.title}" in Google Tasks`, 'success');
+          addLog(`Ticked task "${mapping.title}" in Google Tasks`, 'success');
         }
 
         if (mapping.notionId) deletedNotionIds.add(mapping.notionId);
@@ -147,159 +147,115 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // =========================================================================
-    // 3. RECONCILE & SYNC ACROSS ALL 3 PLATFORMS
+    // 3. SEQUENTIAL CREATION WORKFLOW (GTask -> GCal -> Notion / GCal -> Notion & GTask / Notion -> GCal & GTask)
     // =========================================================================
-    const modifiedInRun = new Set<string>();
+    
+    // Step A: Process Google Tasks -> ensure GCal event exists, then trigger Notion database task creation
+    for (const gtask of activeGTasks) {
+      if (gtask.status === 'completed' || deletedGTaskIds.has(gtask.id)) continue;
+      const cleanTitleKey = gtask.title.trim().toLowerCase().replace(/\s+/g, ' ');
 
-    // Process Notion Tasks -> GCal & GTasks
+      let mapping = findMappingByGTaskId(gtask.id) || findMappingByTitle(gtask.title);
+
+      // Ensure Google Calendar event exists
+      let gcalId = mapping?.gcalId;
+      if (!gcalId) {
+        const existingGCal = activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+        gcalId = existingGCal ? existingGCal.id : (await createGoogleCalendarEvent(gtask.title, gtask.due, gtask.notes)) || undefined;
+      }
+
+      // Ensure Notion task page exists
+      let notionId = mapping?.notionId;
+      if (!notionId) {
+        const existingNotion = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+        notionId = existingNotion ? existingNotion.id : (await createNotionTask(gtask.title, gtask.due, false, gtask.notes)) || undefined;
+        if (notionId) {
+          addLog(`Synced Google Task "${gtask.title}" to Notion database!`, 'success');
+        }
+      }
+
+      upsertMapping({
+        id: mapping?.id || gtask.id,
+        notionId,
+        gcalId,
+        gtaskId: gtask.id,
+        title: gtask.title,
+        dueDate: gtask.due,
+        description: gtask.notes,
+        isCompleted: false,
+        lastUpdated: new Date().toISOString(),
+        sourcePlatform: 'gtask',
+      });
+    }
+
+    // Step B: Process Google Calendar Events -> ensure Notion task & Google Task exist
+    for (const evt of activeGCalEvents) {
+      if (deletedGCalIds.has(evt.id)) continue;
+      const cleanTitleKey = evt.summary.trim().toLowerCase().replace(/\s+/g, ' ');
+
+      let mapping = findMappingByGCalId(evt.id) || findMappingByTitle(evt.summary);
+
+      let gtaskId = mapping?.gtaskId;
+      if (!gtaskId) {
+        const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+        gtaskId = existingGTask ? existingGTask.id : (await createGoogleTask(evt.summary, evt.start, evt.description)) || undefined;
+      }
+
+      let notionId = mapping?.notionId;
+      if (!notionId) {
+        const existingNotion = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+        notionId = existingNotion ? existingNotion.id : (await createNotionTask(evt.summary, evt.start, false, evt.description)) || undefined;
+        if (notionId) {
+          addLog(`Synced Google Calendar event "${evt.summary}" to Notion database!`, 'success');
+        }
+      }
+
+      upsertMapping({
+        id: mapping?.id || evt.id,
+        notionId,
+        gcalId: evt.id,
+        gtaskId,
+        title: evt.summary,
+        dueDate: evt.start,
+        description: evt.description,
+        isCompleted: false,
+        lastUpdated: new Date().toISOString(),
+        sourcePlatform: 'gcal',
+      });
+    }
+
+    // Step C: Process Notion Tasks -> ensure GCal event & Google Task exist
     for (const nTask of allNotionTasks) {
+      if (nTask.isCompleted || deletedNotionIds.has(nTask.id)) continue;
       const cleanTitleKey = nTask.title.trim().toLowerCase().replace(/\s+/g, ' ');
-
-      if (deletedNotionIds.has(nTask.id)) continue;
 
       let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);
       const descriptionText = buildDescription(nTask.notes, nTask.url, nTask.notionPageUrl);
 
-      // Handle Resync if user UNCHECKED a task in Notion
-      if (mapping && mapping.isCompleted && !nTask.isCompleted) {
-        mapping.isCompleted = false;
-        const gcalId = await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
-        if (!mapping.gtaskId) {
-          mapping.gtaskId = (await createGoogleTask(nTask.title, nTask.dueDate, descriptionText, false)) || undefined;
-        } else {
-          await updateGoogleTask(mapping.gtaskId, { isCompleted: false, title: nTask.title, dueDate: nTask.dueDate });
-        }
-        mapping.gcalId = gcalId || undefined;
-        mapping.lastUpdated = new Date().toISOString();
-        upsertMapping(mapping);
-        addLog(`Resynced unchecked task "${nTask.title}" back to Google Calendar & Google Tasks!`, 'success');
-        continue;
-      }
-
-      if (nTask.isCompleted) continue;
-
-      if (!mapping) {
-        // Create in Google Calendar & Google Tasks
+      let gcalId = mapping?.gcalId;
+      if (!gcalId) {
         const existingGCal = activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+        gcalId = existingGCal ? existingGCal.id : (await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText)) || undefined;
+      }
+
+      let gtaskId = mapping?.gtaskId;
+      if (!gtaskId) {
         const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-
-        const gcalId = existingGCal ? existingGCal.id : await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText);
-        const gtaskId = existingGTask ? existingGTask.id : await createGoogleTask(nTask.title, nTask.dueDate, descriptionText);
-
-        upsertMapping({
-          id: nTask.id,
-          notionId: nTask.id,
-          gcalId: gcalId || undefined,
-          gtaskId: gtaskId || undefined,
-          title: nTask.title,
-          dueDate: nTask.dueDate,
-          description: descriptionText,
-          isCompleted: false,
-          lastUpdated: new Date().toISOString(),
-          sourcePlatform: 'notion',
-        });
-        addLog(`Synced Notion task "${nTask.title}" to Google Calendar & Google Tasks!`, 'success');
-      } else if (!mapping.isCompleted) {
-        // Ensure GTasks has this task
-        if (!mapping.gtaskId) {
-          const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-          mapping.gtaskId = existingGTask ? existingGTask.id : ((await createGoogleTask(nTask.title, nTask.dueDate, descriptionText)) || undefined);
-          upsertMapping(mapping);
-        }
-        // Ensure GCal has this event
-        if (!mapping.gcalId) {
-          const existingGCal = activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-          mapping.gcalId = existingGCal ? existingGCal.id : ((await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText)) || undefined);
-          upsertMapping(mapping);
-        }
+        gtaskId = existingGTask ? existingGTask.id : (await createGoogleTask(nTask.title, nTask.dueDate, descriptionText)) || undefined;
       }
-    }
 
-    // Process Google Tasks ("To Do List") -> Notion & GCal
-    for (const gtask of activeGTasks) {
-      const cleanTitleKey = gtask.title.trim().toLowerCase().replace(/\s+/g, ' ');
-      if (deletedGTaskIds.has(gtask.id)) continue;
-
-      let mapping = findMappingByGTaskId(gtask.id) || findMappingByTitle(gtask.title);
-
-      if (!mapping) {
-        const existingNotionTask = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-        const existingGCal = activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-
-        const notionId = existingNotionTask ? existingNotionTask.id : await createNotionTask(gtask.title, gtask.due, gtask.status === 'completed', gtask.notes);
-        const gcalId = existingGCal ? existingGCal.id : await createGoogleCalendarEvent(gtask.title, gtask.due, gtask.notes);
-
-        upsertMapping({
-          id: gtask.id,
-          notionId: notionId || undefined,
-          gcalId: gcalId || undefined,
-          gtaskId: gtask.id,
-          title: gtask.title,
-          dueDate: gtask.due,
-          description: gtask.notes,
-          isCompleted: gtask.status === 'completed',
-          lastUpdated: new Date().toISOString(),
-          sourcePlatform: 'gtask',
-        });
-        addLog(`Linked Google Task "${gtask.title}" with Notion & Google Calendar!`, 'success');
-      } else if (!mapping.notionId) {
-        const existingNotionTask = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-        const notionId = existingNotionTask ? existingNotionTask.id : await createNotionTask(gtask.title, gtask.due, gtask.status === 'completed', gtask.notes);
-        if (notionId) {
-          mapping.notionId = notionId;
-          upsertMapping(mapping);
-          addLog(`Created Notion task for Google Task "${gtask.title}"`, 'success');
-        }
-      }
-    }
-
-    // Process Google Calendar Events -> Notion & GTasks
-    for (const evt of activeGCalEvents) {
-      const cleanTitleKey = evt.summary.trim().toLowerCase().replace(/\s+/g, ' ');
-      if (deletedGCalIds.has(evt.id)) continue;
-
-      let mapping = findMappingByGCalId(evt.id) || findMappingByTitle(evt.summary);
-
-      if (!mapping) {
-        const existingNotionTask = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-        const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-
-        const notionId = existingNotionTask ? existingNotionTask.id : await createNotionTask(evt.summary, evt.start, false, evt.description);
-        const gtaskId = existingGTask ? existingGTask.id : await createGoogleTask(evt.summary, evt.start, evt.description);
-
-        upsertMapping({
-          id: evt.id,
-          notionId: notionId || undefined,
-          gcalId: evt.id,
-          gtaskId: gtaskId || undefined,
-          title: evt.summary,
-          dueDate: evt.start,
-          description: evt.description,
-          isCompleted: false,
-          lastUpdated: new Date().toISOString(),
-          sourcePlatform: 'gcal',
-        });
-        addLog(`Synced Google Calendar event "${evt.summary}" to Notion & Google Tasks!`, 'success');
-      } else {
-        if (!mapping.notionId) {
-          const existingNotionTask = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-          const notionId = existingNotionTask ? existingNotionTask.id : await createNotionTask(evt.summary, evt.start, false, evt.description);
-          if (notionId) {
-            mapping.notionId = notionId;
-            upsertMapping(mapping);
-            addLog(`Created Notion task for Google Calendar event "${evt.summary}"`, 'success');
-          }
-        }
-        if (!mapping.gtaskId) {
-          const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
-          const gtaskId = existingGTask ? existingGTask.id : await createGoogleTask(evt.summary, evt.start, evt.description);
-          if (gtaskId) {
-            mapping.gtaskId = gtaskId;
-            upsertMapping(mapping);
-            addLog(`Created Google Task for Google Calendar event "${evt.summary}"`, 'success');
-          }
-        }
-      }
+      upsertMapping({
+        id: mapping?.id || nTask.id,
+        notionId: nTask.id,
+        gcalId,
+        gtaskId,
+        title: nTask.title,
+        dueDate: nTask.dueDate,
+        description: descriptionText,
+        isCompleted: false,
+        lastUpdated: new Date().toISOString(),
+        sourcePlatform: 'notion',
+      });
     }
   } catch (error: any) {
     addLog(`Error during 3-way sync execution: ${error?.message || error}`, 'error');
@@ -307,4 +263,5 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
   return logs;
 }
+
 
