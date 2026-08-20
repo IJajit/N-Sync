@@ -358,8 +358,22 @@ export async function createNotionTask(
       if (notes) {
         const cleaned = cleanGCalDescription(notes);
         if (cleaned) {
-          const key = notesPropKey || 'Notes';
-          extraProps[key] = { rich_text: [{ text: { content: cleaned.substring(0, 2000) } }] };
+          const possibleNoteKeys = Array.from(new Set([notesPropKey, 'Notes', 'Description', 'Notes/Description', 'Details', 'Body', 'notes', 'description'])).filter(Boolean) as string[];
+          const noteContent = cleaned.substring(0, 2000);
+
+          for (const nKey of possibleNoteKeys) {
+            try {
+              await notion.pages.update({
+                page_id: pageId,
+                properties: {
+                  [nKey]: { rich_text: [{ text: { content: noteContent } }] },
+                },
+              });
+              break;
+            } catch (e) {
+              // Try next notes column title
+            }
+          }
         }
       }
 
