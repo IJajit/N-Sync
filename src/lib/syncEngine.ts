@@ -236,12 +236,18 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       if (!gcalId) {
         const existingGCal = activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         gcalId = existingGCal ? existingGCal.id : (await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText)) || undefined;
+      } else if (mapping && nTask.notes && mapping.description !== descriptionText) {
+        await updateGoogleCalendarEvent(gcalId, { title: nTask.title, description: descriptionText, dueDate: nTask.dueDate });
+        addLog(`Updated Google Calendar description for "${nTask.title}"`, 'info');
       }
 
       let gtaskId = mapping?.gtaskId;
       if (!gtaskId) {
         const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         gtaskId = existingGTask ? existingGTask.id : (await createGoogleTask(nTask.title, nTask.dueDate, descriptionText)) || undefined;
+      } else if (mapping && nTask.notes && mapping.description !== descriptionText) {
+        await updateGoogleTask(gtaskId, { notes: nTask.notes, title: nTask.title, dueDate: nTask.dueDate });
+        addLog(`Updated Google Task notes for "${nTask.title}"`, 'info');
       }
 
       upsertMapping({
