@@ -68,47 +68,59 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
   if (!REFRESH_TOKEN) return [];
 
   const calendar = google.calendar({ version: 'v3', auth });
-  const calId = await getNotionCalendarId();
 
   try {
+    const calId = await getNotionCalendarId();
+    const calendarIdsToScan = Array.from(new Set([calId, 'primary']));
+
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const timeMin = todayStart.toISOString();
     const timeMax = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString();
 
-    const response = await calendar.events.list({
-      calendarId: calId,
-      singleEvents: true,
-      showDeleted: true,
-      orderBy: 'startTime',
-      timeMin,
-      timeMax,
-    });
-
     const items: GCalEventItem[] = [];
-    for (const evt of response.data.items || []) {
-      if (!evt.id) continue;
-      const isCancelled = evt.status === 'cancelled';
-      let startDate: string | undefined = undefined;
-      if (evt.start?.date) {
-        startDate = evt.start.date;
-      } else if (evt.start?.dateTime) {
-        startDate = evt.start.dateTime;
-      }
+    const seenEventIds = new Set<string>();
 
-      items.push({
-        id: evt.id,
-        summary: evt.summary || 'Untitled Event',
-        description: evt.description || '',
-        start: startDate,
-        updated: evt.updated || undefined,
-        isCancelled,
-      });
+    for (const targetCalId of calendarIdsToScan) {
+      try {
+        const response = await calendar.events.list({
+          calendarId: targetCalId,
+          singleEvents: true,
+          showDeleted: true,
+          orderBy: 'startTime',
+          timeMin,
+          timeMax,
+        });
+
+        for (const evt of response.data.items || []) {
+          if (!evt.id || seenEventIds.has(evt.id)) continue;
+          seenEventIds.add(evt.id);
+
+          const isCancelled = evt.status === 'cancelled';
+          let startDate: string | undefined = undefined;
+          if (evt.start?.date) {
+            startDate = evt.start.date;
+          } else if (evt.start?.dateTime) {
+            startDate = evt.start.dateTime;
+          }
+
+          items.push({
+            id: evt.id,
+            summary: evt.summary || 'Untitled Event',
+            description: evt.description || '',
+            start: startDate,
+            updated: evt.updated || undefined,
+            isCancelled,
+          });
+        }
+      } catch (e) {
+        console.warn(`Error scanning calendar ${targetCalId}:`, e);
+      }
     }
 
     return items;
   } catch (error) {
-    console.error(`Error fetching Google Calendar events from calendar ${calId}:`, error);
+    console.error(`Error fetching Google Calendar events:`, error);
     return [];
   }
 }
