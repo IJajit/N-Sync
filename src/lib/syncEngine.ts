@@ -252,6 +252,55 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         }
       }
     }
+
+    // Process Google Calendar Events -> Notion & GTasks
+    for (const evt of activeGCalEvents) {
+      const cleanTitleKey = evt.summary.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (deletedGCalIds.has(evt.id)) continue;
+
+      let mapping = findMappingByGCalId(evt.id) || findMappingByTitle(evt.summary);
+
+      if (!mapping) {
+        const existingNotionTask = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+        const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+
+        const notionId = existingNotionTask ? existingNotionTask.id : await createNotionTask(evt.summary, evt.start, false, evt.description);
+        const gtaskId = existingGTask ? existingGTask.id : await createGoogleTask(evt.summary, evt.start, evt.description);
+
+        upsertMapping({
+          id: evt.id,
+          notionId: notionId || undefined,
+          gcalId: evt.id,
+          gtaskId: gtaskId || undefined,
+          title: evt.summary,
+          dueDate: evt.start,
+          description: evt.description,
+          isCompleted: false,
+          lastUpdated: new Date().toISOString(),
+          sourcePlatform: 'gcal',
+        });
+        addLog(`Synced Google Calendar event "${evt.summary}" to Notion & Google Tasks!`, 'success');
+      } else {
+        if (!mapping.notionId) {
+          const existingNotionTask = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+          const notionId = existingNotionTask ? existingNotionTask.id : await createNotionTask(evt.summary, evt.start, false, evt.description);
+          if (notionId) {
+            mapping.notionId = notionId;
+            upsertMapping(mapping);
+            addLog(`Created Notion task for Google Calendar event "${evt.summary}"`, 'success');
+          }
+        }
+        if (!mapping.gtaskId) {
+          const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
+          const gtaskId = existingGTask ? existingGTask.id : await createGoogleTask(evt.summary, evt.start, evt.description);
+          if (gtaskId) {
+            mapping.gtaskId = gtaskId;
+            upsertMapping(mapping);
+            addLog(`Created Google Task for Google Calendar event "${evt.summary}"`, 'success');
+          }
+        }
+      }
+    }
   } catch (error: any) {
     addLog(`Error during 3-way sync execution: ${error?.message || error}`, 'error');
   }

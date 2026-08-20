@@ -28,8 +28,12 @@ export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
     let nextCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response: any = await (notion.databases as any).query({
-        database_id: NOTION_TASKS_DB_ID,
+      const response: any = await notion.search({
+        query: '',
+        filter: {
+          value: 'page',
+          property: 'object',
+        } as any,
         page_size: 100,
         start_cursor: nextCursor,
       });
@@ -42,13 +46,20 @@ export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
       nextCursor = response.next_cursor || undefined;
     }
 
+    const targetDbId = NOTION_TASKS_DB_ID ? NOTION_TASKS_DB_ID.replace(/-/g, '') : null;
+
     const parsedTasks = allResults
+      .filter((page: any) => {
+        if (!targetDbId) return true;
+        const pageDbId = page.parent?.database_id ? page.parent.database_id.replace(/-/g, '') : null;
+        return pageDbId === targetDbId;
+      })
       .map((page: any) => parseNotionPage(page))
       .filter((item): item is NotionTaskItem => item !== null);
 
     return parsedTasks;
   } catch (error) {
-    console.error('Error fetching Notion tasks via databases.query:', error);
+    console.error('Error fetching Notion tasks:', error);
     return [];
   }
 }
