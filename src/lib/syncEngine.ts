@@ -50,8 +50,12 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       const parts: string[] = [];
       const cleanNotes = cleanGCalDescription(notes);
       if (cleanNotes) parts.push(cleanNotes);
-      if (url) parts.push(`Website: ${url}`);
-      if (notionPageUrl) parts.push(`Notion Task: ${notionPageUrl}`);
+      if (url && (!cleanNotes || !cleanNotes.toLowerCase().includes(url.toLowerCase()))) {
+        parts.push(`Website: ${url}`);
+      }
+      if (notionPageUrl && (!cleanNotes || !cleanNotes.toLowerCase().includes(notionPageUrl.toLowerCase()))) {
+        parts.push(`Notion Task: ${notionPageUrl}`);
+      }
       return parts.length > 0 ? parts.join('\n\n') : undefined;
     };
 
@@ -252,7 +256,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       if (!gcalId) {
         const existingGCal = activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         gcalId = existingGCal ? existingGCal.id : (await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText)) || undefined;
-      } else if (mapping && (mapping.dueDate !== cleanNotionDue || (nTask.notes && mapping.description !== descriptionText))) {
+      } else if (mapping && (mapping.dueDate !== cleanNotionDue || mapping.description !== descriptionText)) {
         await updateGoogleCalendarEvent(gcalId, { title: nTask.title, description: descriptionText, dueDate: nTask.dueDate });
         addLog(`Updated Google Calendar date/description for "${nTask.title}"`, 'info');
       }
@@ -261,8 +265,8 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       if (!gtaskId) {
         const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         gtaskId = existingGTask ? existingGTask.id : (await createGoogleTask(nTask.title, nTask.dueDate, descriptionText)) || undefined;
-      } else if (mapping && (mapping.dueDate !== cleanNotionDue || (nTask.notes && mapping.description !== descriptionText))) {
-        await updateGoogleTask(gtaskId, { notes: nTask.notes, title: nTask.title, dueDate: nTask.dueDate });
+      } else if (mapping && (mapping.dueDate !== cleanNotionDue || mapping.description !== descriptionText)) {
+        await updateGoogleTask(gtaskId, { notes: descriptionText, title: nTask.title, dueDate: nTask.dueDate });
         addLog(`Updated Google Task date/notes for "${nTask.title}"`, 'info');
       }
 

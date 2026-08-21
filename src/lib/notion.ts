@@ -198,6 +198,14 @@ function parseNotionPage(page: any): NotionTaskItem | null {
     }
   }
 
+  // Fallback: If URL property is not set, extract Website URL from notes if present
+  if (!url && notes) {
+    const match = notes.match(/Website:\s*(https?:\/\/\S+)/i) || notes.match(/(https?:\/\/[^\s]+)/i);
+    if (match) {
+      url = match[1];
+    }
+  }
+
   const notionPageUrl = page.url || `https://www.notion.so/${page.id.replace(/-/g, '')}`;
 
   return {
@@ -242,12 +250,13 @@ export function cleanGCalDescription(rawDesc?: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'");
 
-  // Remove auto-generated "Notion Task: ..." and repeated "Notes:" lines
+  // Remove auto-generated "Notion Task: ...", "Website: ...", and repeated "Notes:" lines
   text = text
     .split('\n')
     .filter((line) => {
       const trimmed = line.trim();
-      return !trimmed.startsWith('Notion Task: https://') && trimmed !== 'Notes:';
+      const lower = trimmed.toLowerCase();
+      return !lower.startsWith('notion task:') && !lower.startsWith('website:') && trimmed !== 'Notes:';
     })
     .join('\n')
     .trim();
@@ -505,10 +514,10 @@ export async function updateNotionTask(
         };
       }
 
-      if (websiteKey && cleanedNotes) {
-        const urlMatch = cleanedNotes.match(/https?:\/\/[^\s]+/i);
+      if (websiteKey && updates.notes) {
+        const urlMatch = updates.notes.match(/Website:\s*(https?:\/\/\S+)/i) || updates.notes.match(/https?:\/\/[^\s]+/i);
         if (urlMatch) {
-          properties[websiteKey] = { url: urlMatch[0] };
+          properties[websiteKey] = { url: urlMatch[1] || urlMatch[0] };
         }
       }
     }
