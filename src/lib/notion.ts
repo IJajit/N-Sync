@@ -25,17 +25,28 @@ export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
   try {
     let allResults: any[] = [];
 
-    // Try direct database query first (most reliable for specific database)
+    // Try direct data source or database query first (most reliable for specific database)
     try {
       let hasMore = true;
       let nextCursor: string | undefined = undefined;
 
       while (hasMore) {
-        const response: any = await (notion.databases as any).query({
-          database_id: NOTION_TASKS_DB_ID,
-          page_size: 100,
-          start_cursor: nextCursor,
-        });
+        let response: any;
+        if ((notion as any).dataSources?.query) {
+          response = await (notion as any).dataSources.query({
+            data_source_id: '368e6d69-8017-808b-8f39-000b186aaa8c',
+            page_size: 100,
+            start_cursor: nextCursor,
+          });
+        } else if ((notion.databases as any)?.query) {
+          response = await (notion.databases as any).query({
+            database_id: NOTION_TASKS_DB_ID,
+            page_size: 100,
+            start_cursor: nextCursor,
+          });
+        } else {
+          throw new Error('Neither dataSources.query nor databases.query available');
+        }
 
         if (response.results) {
           allResults = allResults.concat(response.results);
@@ -45,7 +56,7 @@ export async function fetchNotionTasks(): Promise<NotionTaskItem[]> {
         nextCursor = response.next_cursor || undefined;
       }
     } catch (dbQueryErr) {
-      console.warn('Direct database query failed, falling back to search:', dbQueryErr);
+      console.warn('Direct query failed, falling back to search:', dbQueryErr);
       let hasMore = true;
       let nextCursor: string | undefined = undefined;
 
@@ -167,10 +178,7 @@ function parseNotionPage(page: any): NotionTaskItem | null {
     }
   }
 
-  // Priority 2: Default to today's date so active tasks are synced to calendar
-  if (!dueDate) {
-    dueDate = new Date().toISOString().split('T')[0];
-  }
+  // Do not default to today's date: only tasks with an explicit date should have a dueDate
 
   // Extract Notes / Text properties
   let notes: string | undefined = undefined;

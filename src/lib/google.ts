@@ -5,8 +5,9 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback';
 const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN || '';
 
-export function getOAuth2Client() {
-  const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+export function getOAuth2Client(customRedirectUri?: string) {
+  const redirectUri = customRedirectUri || process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback';
+  const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, redirectUri);
   if (REFRESH_TOKEN) {
     oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
   }
@@ -71,7 +72,8 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
 
   try {
     const calId = await getNotionCalendarId();
-    const calendarIdsToScan = Array.from(new Set([calId, 'primary']));
+    // Only scan the specific Notion calendar, ignoring primary and all other calendars
+    const calendarIdsToScan = [calId];
 
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());

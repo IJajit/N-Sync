@@ -11,7 +11,7 @@ import {
   deleteGoogleTask,
   GTaskItem,
 } from './google';
-import { getMappings, upsertMapping, findMappingByNotionId, findMappingByGCalId, findMappingByGTaskId, findMappingByTitle } from './syncStore';
+import { getMappings, upsertMapping, deleteMapping, findMappingByNotionId, findMappingByGCalId, findMappingByGTaskId, findMappingByTitle } from './syncStore';
 
 export interface SyncLog {
   timestamp: string;
@@ -101,16 +101,63 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // =========================================================================
-    // 2. COMPLETION & DELETION CASCADE WORKFLOW
+    // 2. COMPLETION, DATE REMOVAL & DELETION CASCADE WORKFLOW
     // =========================================================================
     const deletedNotionIds = new Set<string>();
     const deletedGCalIds = new Set<string>();
     const deletedGTaskIds = new Set<string>();
 
+    // Map active Notion tasks by normalized title
+    const activeNotionTasksByTitle = new Map<string, typeof allNotionTasks[0]>();
+    for (const nt of allNotionTasks) {
+      const key = nt.title.trim().toLowerCase().replace(/\s+/g, ' ');
+      activeNotionTasksByTitle.set(key, nt);
+    }
+
+    // Pass 2A: Clean up Google Calendar events & Google Tasks for Notion tasks that have NO due date
+    for (const nt of allNotionTasks) {
+      if (nt.isCompleted) continue;
+      if (!nt.dueDate) {
+        const titleKey = nt.title.trim().toLowerCase().replace(/\s+/g, ' ');
+        const mapping = findMappingByNotionId(nt.id) || findMappingByTitle(nt.title);
+
+        const targetGCal = (mapping?.gcalId ? activeGCalEvents.find((e) => e.id === mapping.gcalId) : undefined)
+          || activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === titleKey);
+
+        if (targetGCal) {
+          await deleteGoogleCalendarEvent(targetGCal.id);
+          deletedGCalIds.add(targetGCal.id);
+          addLog(`Removed "${nt.title}" from Google Calendar (no date assigned in Notion)`, 'info');
+        }
+
+        const targetGTask = (mapping?.gtaskId ? activeGTasks.find((t) => t.id === mapping.gtaskId) : undefined)
+          || activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === titleKey);
+
+        if (targetGTask) {
+          await deleteGoogleTask(targetGTask.id);
+          deletedGTaskIds.add(targetGTask.id);
+          addLog(`Removed "${nt.title}" from Google Tasks (no date assigned in Notion)`, 'info');
+        }
+
+        if (mapping) {
+          deleteMapping(mapping.id);
+          // Remove mapping from the local copy so it does not run through the completion cascade below
+          const idx = allMappings.findIndex((m) => m.id === mapping.id);
+          if (idx !== -1) allMappings.splice(idx, 1);
+        }
+      }
+    }
+
     for (const mapping of [...allMappings]) {
-      const notionTaskExists = mapping.notionId ? notionTaskIds.has(mapping.notionId) : false;
-      const currentNotionTask = mapping.notionId ? allNotionTasks.find((t) => t.id === mapping.notionId) : undefined;
+      const currentNotionTask = (mapping.notionId ? allNotionTasks.find((t) => t.id === mapping.notionId) : undefined)
+        || (mapping.title ? activeNotionTasksByTitle.get(mapping.title.trim().toLowerCase().replace(/\s+/g, ' ')) : undefined);
+      const notionTaskExists = Boolean(currentNotionTask);
       const notionTaskCompleted = currentNotionTask ? currentNotionTask.isCompleted : false;
+
+      // If this mapping is linked to a Notion task that has NO due date, do NOT process completion cascades for it
+      if (currentNotionTask && !currentNotionTask.dueDate) {
+        continue;
+      }
       
       const gcalEvt = mapping.gcalId ? gcalEvents.find((e) => e.id === mapping.gcalId) : undefined;
       const isExplicitlyCancelledInGCal = gcalEvt ? Boolean(gcalEvt.isCancelled) : false;
@@ -120,7 +167,8 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
       const newlyCompletedInNotion = notionTaskCompleted && !mapping.isCompleted;
       const newlyCompletedInGTask = gtaskCompleted && !mapping.isCompleted;
-      const deletedFromGCal = isExplicitlyCancelledInGCal && !mapping.isCompleted;
+      // deletedFromGCal should ONLY trigger if the GCal event wasn't deleted by our dateless cleanup
+      const deletedFromGCal = isExplicitlyCancelledInGCal && !mapping.isCompleted && (!mapping.gcalId || !deletedGCalIds.has(mapping.gcalId));
 
       // Workflow: Checking in Notion or GTasks -> delete GCal event & check in remaining services
       // Workflow: Deleting GCal event -> check Notion task & tick mark GTask
@@ -160,6 +208,10 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       if (gtask.status === 'completed' || deletedGTaskIds.has(gtask.id)) continue;
       const cleanTitleKey = gtask.title.trim().toLowerCase().replace(/\s+/g, ' ');
 
+      // If this corresponds to an existing Notion task that has NO date, skip syncing to GCal/GTask
+      const existingNotion = activeNotionTasksByTitle.get(cleanTitleKey);
+      if (existingNotion && !existingNotion.dueDate) continue;
+
       let mapping = findMappingByGTaskId(gtask.id) || findMappingByTitle(gtask.title);
       const cleanGTaskDue = gtask.due ? (gtask.due.includes('T') ? gtask.due.split('T')[0] : gtask.due) : undefined;
 
@@ -176,7 +228,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       // Ensure Notion task page exists or update date/notes if changed in GTasks
       let notionId = mapping?.notionId;
       if (!notionId) {
-        const existingNotion = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         notionId = existingNotion ? existingNotion.id : (await createNotionTask(gtask.title, gtask.due, false, gtask.notes)) || undefined;
         if (notionId) {
           addLog(`Synced Google Task "${gtask.title}" to Notion database!`, 'success');
@@ -205,6 +256,10 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       if (deletedGCalIds.has(evt.id)) continue;
       const cleanTitleKey = evt.summary.trim().toLowerCase().replace(/\s+/g, ' ');
 
+      // If this corresponds to an existing Notion task that has NO date, skip recreating/syncing
+      const existingNotion = activeNotionTasksByTitle.get(cleanTitleKey);
+      if (existingNotion && !existingNotion.dueDate) continue;
+
       let mapping = findMappingByGCalId(evt.id) || findMappingByTitle(evt.summary);
       const cleanGCalDue = evt.start ? (evt.start.includes('T') ? evt.start.split('T')[0] : evt.start) : undefined;
 
@@ -219,7 +274,6 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
       let notionId = mapping?.notionId;
       if (!notionId) {
-        const existingNotion = allNotionTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         notionId = existingNotion ? existingNotion.id : (await createNotionTask(evt.summary, evt.start, false, evt.description)) || undefined;
         if (notionId) {
           addLog(`Synced Google Calendar event "${evt.summary}" to Notion database!`, 'success');
@@ -243,9 +297,11 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       });
     }
 
-    // Step C: Process Notion Tasks -> ensure GCal event & Google Task exist, and propagate date/notes updates
+    // Step C: Process Notion Tasks -> only sync tasks that have a date to Google Calendar & Tasks
     for (const nTask of allNotionTasks) {
       if (nTask.isCompleted || deletedNotionIds.has(nTask.id)) continue;
+      // Strictly skip tasks that do not have a date
+      if (!nTask.dueDate) continue;
       const cleanTitleKey = nTask.title.trim().toLowerCase().replace(/\s+/g, ' ');
 
       let mapping = findMappingByNotionId(nTask.id) || findMappingByTitle(nTask.title);

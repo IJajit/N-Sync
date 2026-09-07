@@ -86,3 +86,11 @@ export function upsertMapping(mapping: TaskMapping): void {
   }
   saveMappings(mappings);
 }
+
+export function deleteMapping(idOrNotionId: string): void {
+  const mappings = getMappings();
+  const filtered = mappings.filter((m) => m.id !== idOrNotionId && m.notionId !== idOrNotionId && m.gcalId !== idOrNotionId && m.gtaskId !== idOrNotionId);
+  if (filtered.length !== mappings.length) {
+    saveMappings(filtered);
+  }
+}

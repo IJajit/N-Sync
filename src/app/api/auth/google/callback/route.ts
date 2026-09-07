@@ -10,12 +10,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const oauth2Client = getOAuth2Client();
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'n-sync.vercel.app';
+    const proto = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+    const dynamicRedirectUri = `${proto}://${host}/api/auth/google/callback`;
+
+    const oauth2Client = getOAuth2Client(process.env.GOOGLE_REDIRECT_URI || dynamicRedirectUri);
     const { tokens } = await oauth2Client.getToken(code);
 
     return NextResponse.json({
       message: 'Successfully authenticated with Google!',
-      instructions: 'Copy the refresh_token below and add it to your .env.local file as GOOGLE_REFRESH_TOKEN',
+      instructions: 'Copy the refresh_token below and add it to your Vercel / .env.local as GOOGLE_REFRESH_TOKEN',
       refresh_token: tokens.refresh_token,
       access_token: tokens.access_token,
     });
