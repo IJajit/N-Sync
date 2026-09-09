@@ -1,12 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, ExternalLink, Zap, Calendar as CalendarIcon, Database, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, ExternalLink, Zap, Calendar as CalendarIcon, Database, ArrowUpRight, CheckCircle2, ListTodo } from 'lucide-react';
+
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+}
 
 export default function SyncDashboard() {
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [mappings, setMappings] = useState<any[]>([]);
+  const [pendingTasks, setPendingTasks] = useState<any[]>([]);
   const [autoSync, setAutoSync] = useState(true);
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
 
@@ -15,14 +21,21 @@ export default function SyncDashboard() {
   const triggerSync = async () => {
     setSyncing(true);
     try {
-      const res = await fetch('/api/sync', { method: 'POST' });
+      const [res, pendingRes] = await Promise.all([
+        fetch('/api/sync', { method: 'POST' }),
+        fetch('/api/sync/pending', { method: 'POST' })
+      ]);
       const data = await res.json();
-      if (data.logs && Array.isArray(data.logs)) {
+      const pendingData = await pendingRes.json();
+
+      const allNewLogs = [...(data.logs || []), ...(pendingData.logs || [])];
+
+      if (allNewLogs.length > 0) {
         setLogs((prevLogs) => {
           const now = Date.now();
           const cutoff = now - FIVE_MINUTES_MS;
           // Combine existing logs with newly fetched logs
-          const combined = [...prevLogs, ...data.logs];
+          const combined = [...prevLogs, ...allNewLogs];
           // Deduplicate logs by unique timestamp + message key
           const uniqueMap = new Map();
           for (const item of combined) {
@@ -39,6 +52,9 @@ export default function SyncDashboard() {
       }
       if (data.mappings) {
         setMappings(data.mappings);
+      }
+      if (pendingData.tasks) {
+        setPendingTasks(pendingData.tasks);
       }
       setLastSyncedTime(new Date().toLocaleTimeString());
     } catch (err) {
@@ -66,6 +82,11 @@ export default function SyncDashboard() {
       .then((res) => res.json())
       .then((data) => {
         if (data.mappings) setMappings(data.mappings);
+      });
+    fetch('/api/sync/pending')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.tasks) setPendingTasks(data.tasks);
       });
   }, []);
 
@@ -136,8 +157,8 @@ export default function SyncDashboard() {
           </div>
         </header>
 
-        {/* 3 Vertical Equal-Height Columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        {/* 4 Vertical Equal-Height Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
           
           {/* COLUMN 1: GOOGLE CALENDAR */}
           <section className="bg-[#0b0b0d] border border-neutral-850 p-5 flex flex-col justify-between space-y-5">
@@ -198,9 +219,11 @@ export default function SyncDashboard() {
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                           <span className="text-neutral-300 truncate max-w-[200px]">{item.title}</span>
                         </div>
-                        <span className="text-[9px] text-neutral-500 font-mono">
-                          {item.dueDate ? item.dueDate : 'Pending'}
-                        </span>
+                        {item.dueDate ? (
+                          <span className="text-[9px] text-neutral-500 font-mono">
+                            {formatDate(item.dueDate)}
+                          </span>
+                        ) : null}
                       </div>
                     ))
                   )}
@@ -274,9 +297,11 @@ export default function SyncDashboard() {
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                           <span className="text-neutral-300 truncate max-w-[190px]">{item.title}</span>
                         </div>
-                        <span className="text-[9px] px-1.5 py-0.5 border border-amber-900/60 text-amber-400 bg-amber-950/30">
-                          Pending
-                        </span>
+                        {item.dueDate ? (
+                          <span className="text-[9px] text-neutral-500 font-mono">
+                            {formatDate(item.dueDate)}
+                          </span>
+                        ) : null}
                       </div>
                     ))
                   )}
@@ -291,7 +316,77 @@ export default function SyncDashboard() {
           </section>
 
 
-          {/* COLUMN 3: LIVE SYNC ACTIVITY */}
+          {/* COLUMN 3: PENDING GOOGLE TASKS */}
+          <section className="bg-[#0b0b0d] border border-neutral-850 p-5 flex flex-col justify-between space-y-5">
+            <div className="space-y-4">
+              {/* Header in Sentence case */}
+              <div className="border-b border-neutral-800 pb-3 flex items-baseline justify-between">
+                <h2 className="text-base font-semibold tracking-tight text-neutral-200">
+                  Google Tasks
+                </h2>
+                <span className="text-[10px] font-mono text-neutral-500">Pending List</span>
+              </div>
+
+              {/* Action Buttons at Top */}
+              <div className="grid grid-cols-1 gap-2.5">
+                <a
+                  href="https://tasks.google.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between p-3 bg-[#111114] border border-neutral-800 hover:border-neutral-600 transition-all text-xs font-mono text-neutral-300 hover:text-white group/link"
+                >
+                  <span className="flex items-center gap-2">
+                    <ListTodo className="w-3.5 h-3.5 text-sky-400" />
+                    Open Google Tasks
+                  </span>
+                  <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover/link:text-white group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                </a>
+
+                <div className="flex items-center justify-between p-3 bg-[#111114] border border-neutral-800 text-xs font-mono text-neutral-400">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                    List: Pending
+                  </span>
+                  <span className="text-[10px] text-neutral-500">No Date Sync</span>
+                </div>
+              </div>
+
+              {/* Pending Google Tasks Feed */}
+              <div className="space-y-3 pt-2">
+                <div className="text-[10px] font-mono tracking-widest text-neutral-500 border-b border-neutral-900 pb-1.5 flex justify-between">
+                  <span>Tasks in Pending list</span>
+                  <span>{pendingTasks.filter((t) => !t.isDeleted && t.status !== 'completed').length} Pending</span>
+                </div>
+
+                <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
+                  {pendingTasks.filter((t) => !t.isDeleted && t.status !== 'completed').length === 0 ? (
+                    <div className="py-12 text-center text-xs font-mono text-neutral-600 border border-dashed border-neutral-900">
+                      No pending tasks found in list.
+                    </div>
+                  ) : (
+                    pendingTasks
+                      .filter((t) => !t.isDeleted && t.status !== 'completed')
+                      .map((task) => (
+                        <div key={task.id} className="flex items-center justify-between border-b border-neutral-900 pb-2 text-xs font-mono">
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+                            <span className="text-neutral-300 truncate">{task.title}</span>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-neutral-900 flex justify-between text-[10px] font-mono text-neutral-500">
+              <span>List: PENDING</span>
+              <span>Live 2-Way</span>
+            </div>
+          </section>
+
+
+          {/* COLUMN 4: LIVE SYNC ACTIVITY */}
           <section className="bg-[#0b0b0d] border border-neutral-850 p-5 flex flex-col justify-between space-y-5">
             <div className="space-y-4">
               {/* Header in Sentence case */}
