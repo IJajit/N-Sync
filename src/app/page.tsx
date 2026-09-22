@@ -173,17 +173,17 @@ export default function SyncDashboard() {
               onClick={triggerCleanSync}
               disabled={cleanSyncing || syncing}
               title={cleanSyncing ? 'Clean Syncing...' : 'Clean Sync (Audit & Rebuild)'}
-              className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm disabled:opacity-50"
+              className="w-9 h-9 rounded-full bg-neutral-900 border border-white hover:bg-neutral-800 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm disabled:opacity-50"
             >
               <Sparkles className={`w-4 h-4 text-amber-400 ${cleanSyncing ? 'animate-spin' : ''}`} />
             </button>
 
             {/* 1. Circular Live AutoSync Toggle Button */}
             <label 
-              className={`w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-all select-none ${
+              className={`w-9 h-9 rounded-full border border-white flex items-center justify-center cursor-pointer transition-all select-none ${
                 autoSync 
-                  ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' 
-                  : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-neutral-300'
+                  ? 'bg-emerald-500/10 text-emerald-400' 
+                  : 'bg-neutral-900 text-neutral-500 hover:text-neutral-300'
               }`}
               title={autoSync ? 'Live AutoSync Active (Click to Pause)' : 'Live AutoSync Paused (Click to Enable)'}
             >
@@ -201,9 +201,9 @@ export default function SyncDashboard() {
               onClick={triggerSync}
               disabled={syncing || cleanSyncing}
               title={syncing ? 'Syncing...' : 'Sync now'}
-              className="w-9 h-9 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-50 text-black flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm"
+              className="w-9 h-9 rounded-full bg-neutral-900 border border-white hover:bg-neutral-800 disabled:opacity-50 text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm"
             >
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 text-white ${syncing ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </header>
