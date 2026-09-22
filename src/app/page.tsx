@@ -168,15 +168,14 @@ export default function SyncDashboard() {
 
           {/* Minimal Controls Bar: Clean Sync, AutoSync Toggle, and Sync */}
           <div className="flex items-center gap-3">
-            {/* 0. Clean Sync Button */}
+            {/* 0. Circular Clean Sync Button */}
             <button
               onClick={triggerCleanSync}
               disabled={cleanSyncing || syncing}
               title={cleanSyncing ? 'Clean Syncing...' : 'Clean Sync (Audit & Rebuild)'}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-750 hover:border-neutral-500 text-xs font-mono text-neutral-300 hover:text-white transition-all cursor-pointer active:scale-95 shadow-sm disabled:opacity-50"
+              className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm disabled:opacity-50"
             >
-              <Sparkles className={`w-3.5 h-3.5 text-amber-400 ${cleanSyncing ? 'animate-spin' : ''}`} />
-              <span>Clean Sync</span>
+              <Sparkles className={`w-4 h-4 text-amber-400 ${cleanSyncing ? 'animate-spin' : ''}`} />
             </button>
 
             {/* 1. Circular Live AutoSync Toggle Button */}
