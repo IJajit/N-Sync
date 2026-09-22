@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, ExternalLink, Zap, Calendar as CalendarIcon, Database, ArrowUpRight, CheckCircle2, ListTodo } from 'lucide-react';
+import { RefreshCw, ExternalLink, Zap, Calendar as CalendarIcon, Database, ArrowUpRight, CheckCircle2, ListTodo, Sparkles } from 'lucide-react';
 
 function formatDate(dateStr?: string | null): string {
   if (!dateStr) return '';
@@ -10,6 +10,7 @@ function formatDate(dateStr?: string | null): string {
 
 export default function SyncDashboard() {
   const [syncing, setSyncing] = useState(false);
+  const [cleanSyncing, setCleanSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [mappings, setMappings] = useState<any[]>([]);
   const [pendingTasks, setPendingTasks] = useState<any[]>([]);
@@ -21,11 +22,9 @@ export default function SyncDashboard() {
   const triggerSync = async () => {
     setSyncing(true);
     try {
-      const [res, pendingRes] = await Promise.all([
-        fetch('/api/sync', { method: 'POST' }),
-        fetch('/api/sync/pending', { method: 'POST' })
-      ]);
+      const res = await fetch('/api/sync', { method: 'POST' });
       const data = await res.json();
+      const pendingRes = await fetch('/api/sync/pending', { method: 'POST' });
       const pendingData = await pendingRes.json();
 
       const allNewLogs = [...(data.logs || []), ...(pendingData.logs || [])];
@@ -61,6 +60,48 @@ export default function SyncDashboard() {
       console.error('Error triggering sync:', err);
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const triggerCleanSync = async () => {
+    setCleanSyncing(true);
+    try {
+      const res = await fetch('/api/sync/clean', { method: 'POST' });
+      const data = await res.json();
+
+      if (data.logs && data.logs.length > 0) {
+        setLogs((prevLogs) => {
+          const now = Date.now();
+          const cutoff = now - FIVE_MINUTES_MS;
+          const combined = [...prevLogs, ...data.logs];
+          const uniqueMap = new Map();
+          for (const item of combined) {
+            const time = new Date(item.timestamp).getTime();
+            if (time >= cutoff) {
+              uniqueMap.set(`${item.timestamp}-${item.message}`, item);
+            }
+          }
+          const filtered = Array.from(uniqueMap.values());
+          filtered.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+          return filtered;
+        });
+      }
+      if (data.mappings) {
+        setMappings(data.mappings);
+      }
+      if (data.pendingMappings) {
+        // Also refresh pending tasks list
+        fetch('/api/sync/pending')
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.tasks) setPendingTasks(d.tasks);
+          });
+      }
+      setLastSyncedTime(new Date().toLocaleTimeString());
+    } catch (err) {
+      console.error('Error triggering clean sync:', err);
+    } finally {
+      setCleanSyncing(false);
     }
   };
 
@@ -125,8 +166,19 @@ export default function SyncDashboard() {
             Calendar Sync
           </h1>
 
-          {/* Minimal Controls Bar: Uniform Circular Buttons (No Outer Box) */}
+          {/* Minimal Controls Bar: Clean Sync, AutoSync Toggle, and Sync */}
           <div className="flex items-center gap-3">
+            {/* 0. Clean Sync Button */}
+            <button
+              onClick={triggerCleanSync}
+              disabled={cleanSyncing || syncing}
+              title={cleanSyncing ? 'Clean Syncing...' : 'Clean Sync (Audit & Rebuild)'}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900 border border-neutral-750 hover:border-neutral-500 text-xs font-mono text-neutral-300 hover:text-white transition-all cursor-pointer active:scale-95 shadow-sm disabled:opacity-50"
+            >
+              <Sparkles className={`w-3.5 h-3.5 text-amber-400 ${cleanSyncing ? 'animate-spin' : ''}`} />
+              <span>Clean Sync</span>
+            </button>
+
             {/* 1. Circular Live AutoSync Toggle Button */}
             <label 
               className={`w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-all select-none ${
@@ -148,7 +200,7 @@ export default function SyncDashboard() {
             {/* 2. Circular Sync Icon Button */}
             <button
               onClick={triggerSync}
-              disabled={syncing}
+              disabled={syncing || cleanSyncing}
               title={syncing ? 'Syncing...' : 'Sync now'}
               className="w-9 h-9 rounded-full bg-white hover:bg-neutral-200 disabled:opacity-50 text-black flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm"
             >

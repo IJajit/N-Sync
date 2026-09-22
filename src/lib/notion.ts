@@ -123,36 +123,23 @@ function parseNotionPage(page: any): NotionTaskItem | null {
 
   if (!title) return null;
 
-  // Check for checkbox / status completion (prefer 'check' property name if present)
+  // Check for checkbox / status completion
   let isCompleted = false;
   if (page.properties) {
-    // First look for exact property named 'check' or 'Check'
+    // 1. Look for any property of type 'checkbox'
     for (const key of Object.keys(page.properties)) {
-      if (key.toLowerCase() === 'check') {
-        const prop = page.properties[key];
-        if (prop?.type === 'checkbox') {
-          isCompleted = Boolean(prop.checkbox);
-          break;
-        } else if (prop?.type === 'status') {
-          const statusName = prop.status?.name?.toLowerCase() || '';
-          if (statusName === 'done' || statusName === 'completed' || statusName.includes('done')) {
-            isCompleted = true;
-          }
-          break;
-        }
+      const prop = page.properties[key];
+      if (prop?.type === 'checkbox') {
+        isCompleted = Boolean(prop.checkbox);
+        break;
       }
     }
 
-    // Fallback to any checkbox or status property if 'check' was not found
+    // 2. If no checkbox property found, check for status property
     if (!isCompleted) {
       for (const key of Object.keys(page.properties)) {
         const prop = page.properties[key];
-        if (prop?.type === 'checkbox') {
-          if (Boolean(prop.checkbox)) {
-            isCompleted = true;
-            break;
-          }
-        } else if (prop?.type === 'status') {
+        if (prop?.type === 'status') {
           const statusName = prop.status?.name?.toLowerCase() || '';
           if (statusName === 'done' || statusName === 'completed' || statusName.includes('done')) {
             isCompleted = true;
@@ -289,17 +276,24 @@ export async function createNotionTask(
     let notesKey = 'Notes';
 
     try {
-      const db: any = await notion.databases.retrieve({ database_id: NOTION_TASKS_DB_ID });
-      if (db.properties) {
-        for (const key of Object.keys(db.properties)) {
-          const prop = db.properties[key];
+      let props: any = null;
+      if ((notion as any).dataSources?.retrieve) {
+        const ds: any = await (notion as any).dataSources.retrieve({ data_source_id: '368e6d69-8017-808b-8f39-000b186aaa8c' });
+        props = ds?.properties;
+      }
+      if (!props) {
+        const db: any = await notion.databases.retrieve({ database_id: NOTION_TASKS_DB_ID });
+        props = db?.properties;
+      }
+
+      if (props) {
+        for (const key of Object.keys(props)) {
+          const prop = props[key];
           if (prop?.type === 'title') {
             titleKey = key;
-          } else if (key.toLowerCase() === 'check') {
+          } else if (prop?.type === 'checkbox') {
             checkKey = key;
-          } else if (prop?.type === 'checkbox' && !checkKey) {
-            checkKey = key;
-          } else if (prop?.type === 'date' && !dateKey) {
+          } else if (prop?.type === 'date') {
             dateKey = key;
           } else if (prop?.type === 'rich_text' && !notesKey) {
             notesKey = key;
@@ -337,8 +331,8 @@ export async function createNotionTask(
 
     const pageId = newPage.id;
 
-    // 3. Update Checkbox ('check')
-    const checkKeysToTry = Array.from(new Set([checkKey, 'check', 'Check', 'Done', 'Completed'])).filter(Boolean);
+    // 3. Update Checkbox
+    const checkKeysToTry = Array.from(new Set([checkKey, '', 'check', 'Check', 'Done', 'Completed']));
     for (const cKey of checkKeysToTry) {
       try {
         await notion.pages.update({
@@ -452,32 +446,28 @@ export async function updateNotionTask(
     }
 
     if (updates.isCompleted !== undefined && page.properties) {
-      // Look for explicit property named 'check' or 'Check' first
-      let checkPropKey: string | undefined = Object.keys(page.properties).find((k) => k.toLowerCase() === 'check');
-
-      if (checkPropKey) {
-        const prop = page.properties[checkPropKey];
+      let updatedCheckbox = false;
+      // 1. Look for any property of type 'checkbox'
+      for (const key of Object.keys(page.properties)) {
+        const prop = page.properties[key];
         if (prop?.type === 'checkbox') {
-          properties[checkPropKey] = { checkbox: updates.isCompleted };
-        } else if (prop?.type === 'status') {
-          const options = prop.status?.options || [];
-          const doneOpt = options.find((opt: any) => opt.name.toLowerCase().includes('done') || opt.name.toLowerCase().includes('complete'));
-          properties[checkPropKey] = {
-            status: { name: updates.isCompleted ? (doneOpt ? doneOpt.name : 'Done') : 'Not started' },
-          };
+          properties[key] = { checkbox: updates.isCompleted };
+          updatedCheckbox = true;
+          break;
         }
-      } else {
-        // Fallback to any checkbox or status property
+      }
+
+      // 2. If no checkbox property, check status property
+      if (!updatedCheckbox) {
         for (const key of Object.keys(page.properties)) {
           const prop = page.properties[key];
-          if (prop?.type === 'checkbox') {
-            properties[key] = { checkbox: updates.isCompleted };
-          } else if (prop?.type === 'status') {
+          if (prop?.type === 'status') {
             const options = prop.status?.options || [];
             const doneOpt = options.find((opt: any) => opt.name.toLowerCase().includes('done') || opt.name.toLowerCase().includes('complete'));
             properties[key] = {
               status: { name: doneOpt ? doneOpt.name : (updates.isCompleted ? 'Done' : 'Not started') },
             };
+            break;
           }
         }
       }

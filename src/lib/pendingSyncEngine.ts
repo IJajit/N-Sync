@@ -68,27 +68,43 @@ export async function runPendingSync(): Promise<PendingSyncLog[]> {
     // 2. PASS A: DELETION SYNC
     // If an item existed in our mapping but was deleted/trashed in Notion or Google Tasks
     // =========================================================================
+    const allNotionTaskIds = new Set(allNotionTasks.map((t) => t.id));
+    const allNotionByTitle = new Map<string, typeof allNotionTasks[0]>();
+    for (const t of allNotionTasks) {
+      allNotionByTitle.set(t.title.trim().toLowerCase().replace(/\s+/g, ' '), t);
+    }
+
     for (const mapping of [...allMappings]) {
       const cleanTitleKey = mapping.title.trim().toLowerCase().replace(/\s+/g, ' ');
 
-      const notionTaskExists = mapping.notionId ? datelessNotionIds.has(mapping.notionId) : datelessNotionByTitle.has(cleanTitleKey);
+      // Check existence across ALL Notion tasks (not only dateless ones)
+      const fullNotionTask = mapping.notionId ? allNotionTasks.find((t) => t.id === mapping.notionId) : allNotionByTitle.get(cleanTitleKey);
+      const notionTaskExists = Boolean(fullNotionTask);
       const gtaskItem = mapping.gtaskId ? pendingGTasks.find((t) => t.id === mapping.gtaskId) : pendingGTasksByTitle.get(cleanTitleKey);
       const gtaskExists = Boolean(gtaskItem && !gtaskItem.isDeleted);
 
-      // Deleted in Google Tasks -> delete/archive corresponding Notion task
-      if (!gtaskExists && mapping.gtaskId && notionTaskExists && mapping.notionId) {
-        await deleteNotionTaskPage(mapping.notionId);
-        handledNotionIds.add(mapping.notionId);
-        addLog(`Deleted task "${mapping.title}" from Notion (deleted from Google Tasks Pending)`, 'success');
+      // If the Notion task now has a dueDate, it has graduated to dated sync!
+      // Delete it from pending Google Tasks and clean pending mapping safely without touching Notion.
+      if (fullNotionTask && fullNotionTask.dueDate) {
+        if (gtaskExists && mapping.gtaskId) {
+          await deleteGooglePendingTask(mapping.gtaskId);
+          handledGTaskIds.add(mapping.gtaskId);
+        }
         deletePendingMapping(mapping.id);
         continue;
       }
 
-      // Deleted in Notion -> delete corresponding Google Task
+      // If genuinely deleted from Notion (not found in database at all), remove from Google Tasks Pending
       if (!notionTaskExists && mapping.notionId && gtaskExists && mapping.gtaskId) {
         await deleteGooglePendingTask(mapping.gtaskId);
         handledGTaskIds.add(mapping.gtaskId);
-        addLog(`Deleted task "${mapping.title}" from Google Tasks Pending (deleted from Notion)`, 'success');
+        addLog(`Deleted task "${mapping.title}" from Google Tasks Pending (deleted from Notion)`, 'info');
+        deletePendingMapping(mapping.id);
+        continue;
+      }
+
+      // If deleted from Google Tasks Pending, simply remove the pending mapping without destroying Notion task
+      if (!gtaskExists && mapping.gtaskId && notionTaskExists) {
         deletePendingMapping(mapping.id);
         continue;
       }

@@ -12,6 +12,7 @@ import {
   GTaskItem,
 } from './google';
 import { getMappings, upsertMapping, deleteMapping, findMappingByNotionId, findMappingByGCalId, findMappingByGTaskId, findMappingByTitle } from './syncStore';
+import { runMidnightRollover } from './rolloverEngine';
 
 export interface SyncLog {
   timestamp: string;
@@ -31,6 +32,11 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
   };
 
   try {
+    // 0. Automatically check for tasks past midnight and roll over to today
+    const rolloverLogs = await runMidnightRollover();
+    for (const rLog of rolloverLogs) {
+      logs.push(rLog);
+    }
     // 1. Fetch current items from Notion Tasks, Google Calendar, and Google Tasks ("To Do List")
     const [allNotionTasks, gcalEvents, gtaskItems] = await Promise.all([
       fetchNotionTasks(),
@@ -165,22 +171,14 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       const gtaskItem = mapping.gtaskId ? gtaskItems.find((t) => t.id === mapping.gtaskId) : undefined;
       const gtaskCompleted = gtaskItem ? gtaskItem.status === 'completed' : false;
 
+      // RULE: Notion is the single source of truth for task completion.
+      // 1. If Notion task was ticked done, propagate completion to GCal and Google Tasks.
       const newlyCompletedInNotion = notionTaskCompleted && !mapping.isCompleted;
-      const newlyCompletedInGTask = gtaskCompleted && !mapping.isCompleted;
-      // deletedFromGCal should ONLY trigger if the GCal event wasn't deleted by our dateless cleanup
-      const deletedFromGCal = isExplicitlyCancelledInGCal && !mapping.isCompleted && (!mapping.gcalId || !deletedGCalIds.has(mapping.gcalId));
 
-      // Workflow: Checking in Notion or GTasks -> delete GCal event & check in remaining services
-      // Workflow: Deleting GCal event -> check Notion task & tick mark GTask
-      if (newlyCompletedInNotion || newlyCompletedInGTask || deletedFromGCal) {
+      if (newlyCompletedInNotion) {
         if (mapping.gcalId && gcalEventIds.has(mapping.gcalId)) {
           await deleteGoogleCalendarEvent(mapping.gcalId);
           addLog(`Deleted event "${mapping.title}" from Google Calendar`, 'success');
-        }
-
-        if (mapping.notionId && notionTaskExists && !notionTaskCompleted) {
-          await updateNotionTask(mapping.notionId, { isCompleted: true });
-          addLog(`Ticked task "${mapping.title}" in Notion database`, 'success');
         }
 
         if (mapping.gtaskId && gtaskItem && gtaskItem.status !== 'completed') {
@@ -194,6 +192,16 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
 
         mapping.isCompleted = true;
         mapping.gcalId = undefined;
+        upsertMapping(mapping);
+        continue;
+      }
+
+      // 2. If Notion task is active (NOT completed), it must NEVER be marked complete by Google Tasks.
+      // If the Google Task was marked completed or stale, reactivate it in Google Tasks to keep them in sync.
+      if (currentNotionTask && !notionTaskCompleted && gtaskCompleted && mapping.gtaskId) {
+        await updateGoogleTask(mapping.gtaskId, { isCompleted: false });
+        addLog(`Reopened Google Task "${mapping.title}" (Notion task is still active)`, 'info');
+        mapping.isCompleted = false;
         upsertMapping(mapping);
         continue;
       }
@@ -278,7 +286,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         if (notionId) {
           addLog(`Synced Google Calendar event "${evt.summary}" to Notion database!`, 'success');
         }
-      } else if (mapping && (mapping.dueDate !== cleanGCalDue || (evt.description && mapping.description !== evt.description))) {
+      } else if (mapping && (mapping.dueDate !== evt.start && mapping.dueDate !== cleanGCalDue || (evt.description && mapping.description !== evt.description))) {
         await updateNotionTask(notionId, { notes: evt.description, title: evt.summary, dueDate: evt.start });
         addLog(`Updated Notion date/notes for "${evt.summary}"`, 'info');
       }
@@ -289,7 +297,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         gcalId: evt.id,
         gtaskId,
         title: evt.summary,
-        dueDate: cleanGCalDue,
+        dueDate: evt.start || cleanGCalDue,
         description: evt.description,
         isCompleted: false,
         lastUpdated: new Date().toISOString(),
@@ -312,7 +320,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       if (!gcalId) {
         const existingGCal = activeGCalEvents.find((e) => e.summary.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         gcalId = existingGCal ? existingGCal.id : (await createGoogleCalendarEvent(nTask.title, nTask.dueDate, descriptionText)) || undefined;
-      } else if (mapping && (mapping.dueDate !== cleanNotionDue || mapping.description !== descriptionText)) {
+      } else if (mapping && (mapping.dueDate !== nTask.dueDate && mapping.dueDate !== cleanNotionDue || mapping.description !== descriptionText)) {
         await updateGoogleCalendarEvent(gcalId, { title: nTask.title, description: descriptionText, dueDate: nTask.dueDate });
         addLog(`Updated Google Calendar date/description for "${nTask.title}"`, 'info');
       }
@@ -321,7 +329,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
       if (!gtaskId) {
         const existingGTask = activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === cleanTitleKey);
         gtaskId = existingGTask ? existingGTask.id : (await createGoogleTask(nTask.title, nTask.dueDate, descriptionText)) || undefined;
-      } else if (mapping && (mapping.dueDate !== cleanNotionDue || mapping.description !== descriptionText)) {
+      } else if (mapping && (mapping.dueDate !== nTask.dueDate && mapping.dueDate !== cleanNotionDue || mapping.description !== descriptionText)) {
         await updateGoogleTask(gtaskId, { notes: descriptionText, title: nTask.title, dueDate: nTask.dueDate });
         addLog(`Updated Google Task date/notes for "${nTask.title}"`, 'info');
       }
@@ -332,7 +340,7 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
         gcalId,
         gtaskId,
         title: nTask.title,
-        dueDate: cleanNotionDue,
+        dueDate: nTask.dueDate || cleanNotionDue,
         description: descriptionText,
         isCompleted: false,
         lastUpdated: new Date().toISOString(),

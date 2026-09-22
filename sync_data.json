@@ -1,5 +1,170 @@
 [
   {
+    "id": "3e3e6d69-8017-80c1-85ba-fb41c168b19b",
+    "notionId": "3e3e6d69-8017-80c1-85ba-fb41c168b19b",
+    "gcalId": "26e7hiu7pii6slo6f9konvmli4",
+    "gtaskId": "RHRYSmI1Tk9MeWNxNF9ucQ",
+    "title": "Joseph Binder Award (JBA)",
+    "dueDate": "2026-10-31",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.747Z",
+    "sourcePlatform": "notion",
+    "description": "Website: https://www.josephbinderaward.com/\n\nNotion Task: https://app.notion.com/p/Joseph-Binder-Award-JBA-3e3e6d69801780c185bafb41c168b19b"
+  },
+  {
+    "id": "3e3e6d69-8017-815d-b429-f6a25476a4d7",
+    "notionId": "3e3e6d69-8017-815d-b429-f6a25476a4d7",
+    "gtaskId": "bVZRM3R4UHp6bWM4YnMwaQ",
+    "title": "Leadership & Innovation webeep",
+    "dueDate": "2026-09-22",
+    "description": "Website: https://app.notion.com/p/Leadership-Innovation-webeep-3e3e6d69801781e48e5fe478dc9e9a31\n\nNotion Task: https://app.notion.com/p/Leadership-Innovation-webeep-3e3e6d698017815db429f6a25476a4d7",
+    "isCompleted": true,
+    "lastUpdated": "2026-09-22T17:18:30.455Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3e2e6d69-8017-81d5-8857-ef89d44b7ac1",
+    "notionId": "3e2e6d69-8017-81d5-8857-ef89d44b7ac1",
+    "gcalId": "kb1liqt1ropr0jbk0jmmucmdgo",
+    "gtaskId": "Q0RSc3MyaFZiMEtiajdBTQ",
+    "title": "Team building Reflections",
+    "dueDate": "2026-09-23",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.748Z",
+    "sourcePlatform": "notion",
+    "description": "Notion Task: https://app.notion.com/p/Team-building-Reflections-3e2e6d69801781d58857ef89d44b7ac1"
+  },
+  {
+    "id": "3e0e6d69-8017-8171-8b8e-c617407c3a29",
+    "notionId": "3e0e6d69-8017-8171-8b8e-c617407c3a29",
+    "gcalId": "7inabp4id19651fgkj71b4kkdu",
+    "gtaskId": "a05XOTFvNDNyYzhKVVFkaQ",
+    "title": "ASP",
+    "dueDate": "2026-09-25",
+    "description": "Website: https://app.notion.com/p/ASP-3e0e6d69801781718b8ec617407c3a29\n\nNotion Task: https://app.notion.com/p/ASP-3e0e6d69801781718b8ec617407c3a29",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.748Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3dfe6d69-8017-8140-a55c-d0cee42dee2f",
+    "notionId": "3dfe6d69-8017-8140-a55c-d0cee42dee2f",
+    "gcalId": "71h32p1icdh3ab9gcdh32b9kc8r3abb161i66b9o6ko6adr4ccsm6phjcc",
+    "gtaskId": "bVZQLXZwTjEwaXFxWTd3Nw",
+    "title": "Design Lab Course - Part 2 - EN (on campus)",
+    "dueDate": "2026-10-05",
+    "description": "Website: https://app.notion.com/p/Design-Lab-Course-Part-2-EN-on-campus-3dfe6d6980178140a55cd0cee42dee2f\n\nNotion Task: https://app.notion.com/p/Design-Lab-Course-Part-2-EN-on-campus-3dfe6d6980178140a55cd0cee42dee2f",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.749Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3dee6d69-8017-81b2-be35-ccdebf8e7010",
+    "notionId": "3dee6d69-8017-81b2-be35-ccdebf8e7010",
+    "gcalId": "6dgj6oj2c5h62b9g60rjgb9kckrmcbb1clijab9hc8qjce1l6orj2ob26s",
+    "gtaskId": "bUNtMHUyaXRKQWZWSGwzcw",
+    "title": "Meet & greet lunch",
+    "dueDate": "2026-10-02",
+    "description": "Website: https://app.notion.com/p/Meet-greet-lunch-3dee6d69801781b2be35ccdebf8e7010\n\nNotion Task: https://app.notion.com/p/Meet-greet-lunch-3dee6d69801781b2be35ccdebf8e7010",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.750Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3d9e6d69-8017-8091-a00d-ea712f9501ee",
+    "notionId": "3d9e6d69-8017-8091-a00d-ea712f9501ee",
+    "gcalId": "n8tjs1a15cq6fskudo1m4qq4dg",
+    "gtaskId": "b1VvZTVTc0dkQ2RYMGl5UA",
+    "title": "Track parcel",
+    "dueDate": "2026-09-23",
+    "description": "EK419182535IN\n\nWebsite: https://www.indiapost.gov.in/\n\nNotion Task: https://app.notion.com/p/Track-parcel-3d9e6d6980178091a00dea712f9501ee",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.754Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3d0e6d69-8017-8015-9532-d55d3364e5f8",
+    "notionId": "3d0e6d69-8017-8015-9532-d55d3364e5f8",
+    "gcalId": "obh7sfflmvu3do3g1pfvldc1cs",
+    "gtaskId": "V0RNVHpOazJtSVVDaEJicQ",
+    "title": "Goibibo refund",
+    "dueDate": "2026-09-29",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.755Z",
+    "sourcePlatform": "notion",
+    "description": "Website: https://www.goibibo.com/mytrips/flight/personal/booking?bookingId=GOFLINTAMI7I2427246\n\nNotion Task: https://app.notion.com/p/Goibibo-refund-3d0e6d69801780159532d55d3364e5f8"
+  },
+  {
+    "id": "3cfe6d69-8017-8065-9bf6-de7b17e3f245",
+    "notionId": "3cfe6d69-8017-8065-9bf6-de7b17e3f245",
+    "gcalId": "aqoh57j7647feqjhmht924hhuc",
+    "gtaskId": "VzJLT1dtU2NCbjFUS3E1aQ",
+    "title": "Italian Language Schedule",
+    "dueDate": "2026-09-28",
+    "description": "Website: https://app.notion.com/p/Enroll-to-Italian-Language-3cfe6d69801780659bf6de7b17e3f245\n\nNotion Task: https://app.notion.com/p/Italian-Language-Schedule-3cfe6d69801780659bf6de7b17e3f245",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.756Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3cfe6d69-8017-8077-b9e1-e21c1bf4c012",
+    "notionId": "3cfe6d69-8017-8077-b9e1-e21c1bf4c012",
+    "gcalId": "jscsgrsv0l3rkcuish0jk61adg",
+    "gtaskId": "LVRjMlVaMlNKZG5sRjFKaQ",
+    "title": "Residence Permit",
+    "dueDate": "2026-12-07",
+    "description": "Website: https://app.notion.com/p/Permesso-di-Soggiorno-3cfe6d6980178077b9e1e21c1bf4c012\n\nNotion Task: https://app.notion.com/p/Residence-Permit-3cfe6d6980178077b9e1e21c1bf4c012",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.758Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3cee6d69-8017-810b-b369-c26cd1c0d3ed",
+    "notionId": "3cee6d69-8017-810b-b369-c26cd1c0d3ed",
+    "gcalId": "c4q34dj66lj30b9jcgq6cb9k64pj2b9o70q66b9k68r66oj3cos64p1kcc",
+    "gtaskId": "UnNwT2tDX1JnSm11Ylc0TA",
+    "title": "TSH Test after 3 months",
+    "dueDate": "2026-12-01",
+    "description": "Website: https://app.notion.com/p/TSH-Test-after-3-months-3cee6d698017810bb369c26cd1c0d3ed\n\nNotion Task: https://app.notion.com/p/TSH-Test-after-3-months-3cee6d698017810bb369c26cd1c0d3ed",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.758Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3c7e6d69-8017-80c2-a6c6-c4514cf3c410",
+    "notionId": "3c7e6d69-8017-80c2-a6c6-c4514cf3c410",
+    "gtaskId": "aTlCOHpISHdOQlZxNEE0Wg",
+    "title": "ASP SOP",
+    "dueDate": "2026-09-22",
+    "description": "",
+    "isCompleted": true,
+    "lastUpdated": "2026-09-22T16:43:01.876Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-807f-b993-fbb648bcb111",
+    "notionId": "3bfe6d69-8017-807f-b993-fbb648bcb111",
+    "gtaskId": "bVB5cnd1NGRtaUY3Y2FLTA",
+    "title": "IDP license",
+    "dueDate": "2026-09-26",
+    "description": "https://sarathi.parivahan.gov.in/sarathiservice/stateSelection.do",
+    "isCompleted": true,
+    "lastUpdated": "2026-09-22T16:43:04.850Z",
+    "sourcePlatform": "notion"
+  },
+  {
+    "id": "3bfe6d69-8017-810f-b9f1-e94d4ee895a7",
+    "notionId": "3bfe6d69-8017-810f-b9f1-e94d4ee895a7",
+    "gcalId": "kpiikqhdke2rbh24hfs66ths8k",
+    "gtaskId": "TTZQSkg0WlZTOUtMMXdFRg",
+    "title": "3 months completed for Vitamin course",
+    "dueDate": "2026-10-15",
+    "description": "Website: https://app.notion.com/p/3-months-completed-for-Vitamin-course-3bfe6d698017810fb9f1e94d4ee895a7\n\nNotion Task: https://app.notion.com/p/3-months-completed-for-Vitamin-course-3bfe6d698017810fb9f1e94d4ee895a7",
+    "isCompleted": false,
+    "lastUpdated": "2026-09-22T17:18:32.759Z",
+    "sourcePlatform": "notion"
+  },
+  {
     "id": "3bfe6d69-8017-810d-a3a9-d19d7c2f4f44",
     "notionId": "3bfe6d69-8017-810d-a3a9-d19d7c2f4f44",
     "gcalId": "4pgrp32pokmvpa2ree1unf38qs",
@@ -55,15 +220,6 @@
     "isCompleted": true,
     "lastUpdated": "2026-08-18T09:37:55.645Z",
     "sourcePlatform": "notion"
-  },
-  {
-    "id": "3c0e6d69-8017-801b-a682-c05915e52dac",
-    "title": "zettelkasten notes taking",
-    "dueDate": "2026-08-19",
-    "isCompleted": true,
-    "lastUpdated": "2026-08-18T09:38:45.677Z",
-    "sourcePlatform": "notion",
-    "gcalId": "mgo4uakcu3c4lb2lvjibalrtcg"
   },
   {
     "id": "3bfe6d69-8017-81c8-8442-e8b8f0b6cbd2",
@@ -178,50 +334,6 @@
     "dueDate": "2026-08-17"
   },
   {
-    "id": "3c0e6d69-8017-8009-8815-d19d2a3b64eb",
-    "notionId": "3c0e6d69-8017-8009-8815-d19d2a3b64eb",
-    "title": "Study Plan",
-    "dueDate": "2026-08-26",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:37.706Z",
-    "sourcePlatform": "notion",
-    "gcalId": "jf8fk7qlpnhpug05l7ts3gr468",
-    "description": "Notion Task: https://app.notion.com/p/Study-Plan-3c0e6d69801780098815d19d2a3b64eb"
-  },
-  {
-    "id": "3b1e6d69-8017-8054-8ed9-c31fb0bc391e",
-    "notionId": "3b1e6d69-8017-8054-8ed9-c31fb0bc391e",
-    "gcalId": "8k1gmotgs5gsafkt9padtlkcsc",
-    "title": "Italian language course",
-    "dueDate": "2026-08-26",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:46.332Z",
-    "sourcePlatform": "notion",
-    "description": "Notion Task: https://app.notion.com/p/Italian-language-course-3b1e6d69801780548ed9c31fb0bc391e"
-  },
-  {
-    "id": "3b1e6d69-8017-8007-80f9-cc3ceccf433f",
-    "notionId": "3b1e6d69-8017-8007-80f9-cc3ceccf433f",
-    "gcalId": "hn4ennjoe3jsnv2eju0qvspsu8",
-    "title": "Safety Training Course",
-    "dueDate": "2026-08-27",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:47.462Z",
-    "sourcePlatform": "notion",
-    "description": "Notion Task: https://app.notion.com/p/Safety-Training-Course-3b1e6d698017800780f9cc3ceccf433f"
-  },
-  {
-    "id": "3bfe6d69-8017-807f-b993-fbb648bcb111",
-    "notionId": "3bfe6d69-8017-807f-b993-fbb648bcb111",
-    "title": "IDP license",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:38.879Z",
-    "sourcePlatform": "notion",
-    "dueDate": "2026-08-24",
-    "gcalId": "c4s66d336ti3eb9jccr3gb9k6hij2b9p6tgmabb374qjaphkcdj3ap9h70",
-    "description": "Notion Task: https://app.notion.com/p/IDP-license-3bfe6d698017807fb993fbb648bcb111"
-  },
-  {
     "id": "399e6d69-8017-8009-bbba-f7d47fae5329",
     "notionId": "399e6d69-8017-8009-bbba-f7d47fae5329",
     "gcalId": "n6g14ahev99k55h28n7ona2bmk",
@@ -302,39 +414,6 @@
     "dueDate": "2026-08-17"
   },
   {
-    "id": "3bfe6d69-8017-8001-a3e3-e1aa2863c1b4",
-    "notionId": "3bfe6d69-8017-8001-a3e3-e1aa2863c1b4",
-    "gcalId": "7fl47jknr3ks3n03lmva4lkvd4",
-    "title": "Install Italy apps",
-    "dueDate": "2026-09-02",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:45.244Z",
-    "sourcePlatform": "notion",
-    "description": "Notion Task: https://app.notion.com/p/Install-Italy-apps-3bfe6d6980178001a3e3e1aa2863c1b4"
-  },
-  {
-    "id": "3bfe6d69-8017-81e8-bde2-db56661f7533",
-    "notionId": "3bfe6d69-8017-81e8-bde2-db56661f7533",
-    "gcalId": "70sjad1l74om2bb5ccs3gb9k6pijcbb1cks64bb6c9h64oj4c5i3icb664",
-    "title": "Credit card bill",
-    "dueDate": "2026-08-25",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:42.423Z",
-    "sourcePlatform": "gcal",
-    "description": "Notion Task: https://app.notion.com/p/Credit-card-bill-3bfe6d69801781e8bde2db56661f7533"
-  },
-  {
-    "id": "3bfe6d69-8017-810f-b9f1-e94d4ee895a7",
-    "notionId": "3bfe6d69-8017-810f-b9f1-e94d4ee895a7",
-    "gcalId": "kpiikqhdke2rbh24hfs66ths8k",
-    "title": "3 months completed for Vitamin course",
-    "dueDate": "2026-10-15",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:43.540Z",
-    "sourcePlatform": "notion",
-    "description": "Notion Task: https://app.notion.com/p/3-months-completed-for-Vitamin-course-3bfe6d698017810fb9f1e94d4ee895a7"
-  },
-  {
     "id": "3bfe6d69-8017-808e-bf58-f5f8f511ed2e",
     "notionId": "3bfe6d69-8017-808e-bf58-f5f8f511ed2e",
     "gcalId": "kvlk66j744s4n49083ogpc8lfo",
@@ -343,28 +422,6 @@
     "isCompleted": true,
     "lastUpdated": "2026-08-17T17:33:59.174Z",
     "sourcePlatform": "notion"
-  },
-  {
-    "id": "3bfe6d69-8017-81ed-b553-d8f1299903d4",
-    "notionId": "3bfe6d69-8017-81ed-b553-d8f1299903d4",
-    "gcalId": "5se4agn9090j40mh1jjc2osqu5",
-    "title": "Yellow Kit docs",
-    "dueDate": "2026-08-31",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:39.878Z",
-    "sourcePlatform": "gcal",
-    "description": "Notion Task: https://app.notion.com/p/Yellow-Kit-docs-3bfe6d69801781edb553d8f1299903d4"
-  },
-  {
-    "id": "3bfe6d69-8017-811b-82d4-f2d49154edc2",
-    "notionId": "3bfe6d69-8017-811b-82d4-f2d49154edc2",
-    "gcalId": "2e3eks7474q2p58bh9b9odeqa4",
-    "title": "Fast track immi",
-    "dueDate": "2026-08-31",
-    "isCompleted": false,
-    "lastUpdated": "2026-08-18T10:20:41.159Z",
-    "sourcePlatform": "gcal",
-    "description": "Notion Task: https://app.notion.com/p/Fast-track-immi-3bfe6d698017811b82d4f2d49154edc2"
   },
   {
     "id": "3bfe6d69-8017-80f1-8e1d-ddea622b20e2",
@@ -617,41 +674,26 @@
     "sourcePlatform": "gcal"
   },
   {
-    "id": "3c0e6d69-8017-8017-9154-f5cd820e4549",
-    "gcalId": "0gvor7pt4sftrsqrp599pkrnbk",
-    "title": "joivy contract",
-    "dueDate": "2026-08-19",
+    "id": "9sk4ef7vq9jcm2ebbr461bujlk",
+    "notionId": "3e3e6d69-8017-817a-9db6-eb0c97af4c74",
+    "gtaskId": "WERZc3BrQ0JoYkFPTmZ3Zw",
+    "title": "Team building Miro board",
+    "dueDate": "2026-09-22",
+    "description": "Notion Task: https://app.notion.com/p/Team-building-Miro-board-3e2e6d69801781d58857ef89d44b7ac1",
     "isCompleted": true,
-    "lastUpdated": "2026-08-18T09:38:46.370Z",
-    "sourcePlatform": "notion"
+    "lastUpdated": "2026-09-22T17:18:30.456Z",
+    "sourcePlatform": "gcal"
   },
   {
-    "id": "3c0e6d69-8017-80f4-ba57-f2da24490453",
-    "gcalId": "qn7kk42g5ifc0p503ph0npnoqo",
-    "title": "Joivy",
-    "dueDate": "2026-08-18",
-    "isCompleted": true,
-    "lastUpdated": "2026-08-18T10:06:34.816Z",
-    "sourcePlatform": "notion"
-  },
-  {
-    "id": "3c0e6d69-8017-80f6-957b-d9ac9fae99ee",
-    "gcalId": "a8mtruc5h8pmk7mcbr0u2ntodg",
-    "title": "italian language",
-    "dueDate": "2026-08-18",
-    "isCompleted": true,
-    "lastUpdated": "2026-08-18T10:20:34.757Z",
-    "sourcePlatform": "notion"
-  },
-  {
-    "id": "3c1e6d69-8017-8104-9582-d04324c1d2db",
-    "notionId": "3c1e6d69-8017-8104-9582-d04324c1d2db",
-    "gcalId": "6th3ed9mcdh62bb569hj8b9kc8oj0bb264sjebb3ckqm8db5c8rmcd1m74",
-    "title": "Welcome week",
-    "dueDate": "2026-09-01",
-    "description": "Notes:\nNotion Task: <a href=\"https://app.notion.com/p/Welcome-week-3c1e6d69801781049582d04324c1d2db\" target=\"_blank\">https://app.notion.com/p/Welcome-week-3c1e6d69801781049582d04324c1d2db</a><br><br><a href=\"https://www.polimi.it/en/prospective-students/how-to-apply/welcome-activities/welcome-week/master-of-science-degree-seeking#c35265\">https://www.polimi.it/en/prospective-students/how-to-apply/welcome-activities/welcome-week/master-of-science-degree-seeking#c35265</a>\n\nNotion Task: https://app.notion.com/p/Welcome-week-3c1e6d69801781049582d04324c1d2db",
+    "id": "3cfe6d69-8017-804e-b67c-f827a389af13",
+    "notionId": "3cfe6d69-8017-804e-b67c-f827a389af13",
+    "gcalId": "p97arrdmqj0hqnj3001deersmc",
+    "gtaskId": "SHlzdU8xdWd1cTJ2UF8tMA",
+    "title": "Policard & ESN card, Discounts",
+    "dueDate": "2026-09-22",
+    "description": "Notion Task: https://app.notion.com/p/Policard-ESN-card-Discounts-3cfe6d698017804eb67cf827a389af13",
     "isCompleted": false,
-    "lastUpdated": "2026-08-20T06:43:38.152Z",
+    "lastUpdated": "2026-09-22T17:18:32.757Z",
     "sourcePlatform": "notion"
   }
 ]

@@ -88,7 +88,7 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
         const response = await calendar.events.list({
           calendarId: targetCalId,
           singleEvents: true,
-          showDeleted: true,
+          showDeleted: false,
           orderBy: 'startTime',
           timeMin,
           timeMax,
@@ -139,6 +139,13 @@ function getExclusiveEndDate(dateStr: string): string {
   return dateStr;
 }
 
+function isTimedDate(dueDate: string): boolean {
+  if (!dueDate.includes('T')) return false;
+  // If time portion is exactly 00:00:00 (with any timezone suffix like .000Z or +00:00), treat as all-day date
+  if (/T00:00:00(\.000)?(Z|\+00:00)?$/.test(dueDate)) return false;
+  return true;
+}
+
 export async function createGoogleCalendarEvent(title: string, dueDate?: string, description?: string): Promise<string | null> {
   const auth = getOAuth2Client();
   if (!REFRESH_TOKEN) return null;
@@ -153,7 +160,7 @@ export async function createGoogleCalendarEvent(title: string, dueDate?: string,
     };
 
     if (dueDate) {
-      if (dueDate.includes('T') && !dueDate.endsWith('T00:00:00.000Z')) {
+      if (isTimedDate(dueDate)) {
         const startDate = new Date(dueDate);
         const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
         requestBody.start = { dateTime: startDate.toISOString() };
@@ -203,14 +210,15 @@ export async function updateGoogleCalendarEvent(
     }
 
     if (updates.dueDate !== undefined) {
-      if (updates.dueDate && updates.dueDate.includes('T')) {
+      if (updates.dueDate && isTimedDate(updates.dueDate)) {
         const startDate = new Date(updates.dueDate);
         const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
         requestBody.start = { dateTime: startDate.toISOString() };
         requestBody.end = { dateTime: endDate.toISOString() };
       } else if (updates.dueDate) {
-        requestBody.start = { date: updates.dueDate };
-        requestBody.end = { date: getExclusiveEndDate(updates.dueDate) };
+        const dateOnly = updates.dueDate.split('T')[0];
+        requestBody.start = { date: dateOnly };
+        requestBody.end = { date: getExclusiveEndDate(dateOnly) };
       }
     }
 
