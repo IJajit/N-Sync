@@ -12,6 +12,7 @@ import {
   GTaskItem,
 } from './google';
 import { getMappings, upsertMapping, deleteMapping, findMappingByNotionId, findMappingByGCalId, findMappingByGTaskId, findMappingByTitle } from './syncStore';
+import { getPendingMappings } from './pendingSyncStore';
 import { runMidnightRollover } from './rolloverEngine';
 
 export interface SyncLog {
@@ -121,6 +122,9 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
     }
 
     // Pass 2A: Clean up Google Calendar events & Google Tasks for Notion tasks that have NO due date
+    const pendingMappings = getPendingMappings();
+    const pendingGTaskIds = new Set(pendingMappings.map((m) => m.gtaskId).filter(Boolean));
+
     for (const nt of allNotionTasks) {
       if (nt.isCompleted) continue;
       if (!nt.dueDate) {
@@ -136,13 +140,15 @@ export async function runTwoWaySync(): Promise<SyncLog[]> {
           addLog(`Removed "${nt.title}" from Google Calendar (no date assigned in Notion)`, 'info');
         }
 
-        const targetGTask = (mapping?.gtaskId ? activeGTasks.find((t) => t.id === mapping.gtaskId) : undefined)
-          || activeGTasks.find((t) => t.title.trim().toLowerCase().replace(/\s+/g, ' ') === titleKey);
-
-        if (targetGTask) {
-          await deleteGoogleTask(targetGTask.id);
-          deletedGTaskIds.add(targetGTask.id);
-          addLog(`Removed "${nt.title}" from Google Tasks (no date assigned in Notion)`, 'info');
+        // Only delete from Google Tasks ("To Do") if it was explicitly associated with the dated mapping
+        // and does NOT belong to the pendingSyncEngine ("Pending" list)
+        if (mapping?.gtaskId && !pendingGTaskIds.has(mapping.gtaskId)) {
+          const targetGTask = activeGTasks.find((t) => t.id === mapping.gtaskId);
+          if (targetGTask) {
+            await deleteGoogleTask(targetGTask.id);
+            deletedGTaskIds.add(targetGTask.id);
+            addLog(`Removed "${nt.title}" from Google Tasks (no date assigned in Notion)`, 'info');
+          }
         }
 
         if (mapping) {

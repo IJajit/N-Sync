@@ -19,7 +19,11 @@ export default function SyncDashboard() {
 
   const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
+  const isSyncingRef = React.useRef(false);
+
   const triggerSync = async () => {
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
     setSyncing(true);
     try {
       const res = await fetch('/api/sync', { method: 'POST' });
@@ -49,16 +53,17 @@ export default function SyncDashboard() {
           return filtered;
         });
       }
-      if (data.mappings) {
+      if (!data.skipped && data.mappings) {
         setMappings(data.mappings);
       }
-      if (pendingData.tasks) {
+      if (!pendingData.skipped && pendingData.tasks) {
         setPendingTasks(pendingData.tasks);
       }
       setLastSyncedTime(new Date().toLocaleTimeString());
     } catch (err) {
       console.error('Error triggering sync:', err);
     } finally {
+      isSyncingRef.current = false;
       setSyncing(false);
     }
   };

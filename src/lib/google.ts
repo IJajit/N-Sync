@@ -76,8 +76,8 @@ export async function fetchGoogleCalendarEvents(): Promise<GCalEventItem[]> {
     const calendarIdsToScan = [calId];
 
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const timeMin = todayStart.toISOString();
+    // Look back 48 hours to account for UTC vs local timezone offsets and today's earlier timed events
+    const timeMin = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
     const timeMax = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString();
 
     const items: GCalEventItem[] = [];
